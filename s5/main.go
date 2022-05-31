@@ -1,0 +1,72 @@
+// Copyright (c) 2022 Kai Luo <gluokai@gmail.com>. All rights reserved.
+
+package main
+
+import (
+	"flag"
+	"log"
+	"net"
+
+	"github.com/bzEq/bx/core"
+	socks "github.com/bzEq/bx/socks5"
+)
+
+func main() {
+	var localAddr string
+	flag.StringVar(&localAddr, "c", "localhost:1080", "Address of local server")
+	flag.Parse()
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	UAC := make(chan *net.UDPAddr)
+	go func() {
+		laddr, err := net.ResolveUDPAddr("udp", localAddr)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		ln, err := net.ListenUDP("udp", laddr)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		defer ln.Close()
+		UAC <- ln.LocalAddr().(*net.UDPAddr)
+		for {
+			req := make([]byte, core.DEFAULT_UDP_BUFFER_SIZE)
+			n, remoteAddr, err := ln.ReadFromUDP(req)
+			if err != nil {
+				log.Println(err)
+				continue
+			}
+			s := socks.Server{
+				UA: ln.LocalAddr().(*net.UDPAddr),
+			}
+			go func() {
+				if err := s.ServeUDP(ln, remoteAddr, req[:n]); err != nil {
+					log.Println(err)
+				}
+			}()
+		}
+	}()
+	ln, err := net.Listen("tcp", localAddr)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	defer ln.Close()
+	UA := <-UAC
+	for {
+		c, err := ln.Accept()
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		s := socks.Server{
+			UA: UA,
+		}
+		go func() {
+			if err := s.Serve(c); err != nil {
+				log.Println(err)
+			}
+		}()
+	}
+}

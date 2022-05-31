@@ -1,0 +1,3 @@
+#!/bin/bash
+
+exec $HOME/go/bin/i3 -c :3080
