@@ -108,7 +108,6 @@ func (self *IntrinsicRelayer) ServeAsLocalRelayer(c net.Conn) {
 
 func (self *IntrinsicRelayer) ServeAsEndRelayer(c net.Conn) {
 	defer c.Close()
-	// Since we are also accepting UDP proxy requests, use SyncPort here.
-	cp := core.NewSyncPort(c, createProtocol(self.RelayProtocol))
+	cp := core.NewPort(c, createProtocol(self.RelayProtocol))
 	intrinsic.Serve(cp)
 }
