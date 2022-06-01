@@ -123,3 +123,10 @@ func NewPortWithTimeout(c net.Conn, p Protocol, timeout int) Port {
 		}
 	}
 }
+
+func AsSyncPort(p Port) Port {
+	if _, succ := p.(*SyncPort); !succ {
+		return &SyncPort{Port: p}
+	}
+	return p
+}

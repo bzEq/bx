@@ -49,6 +49,7 @@ func proxyTCP(p core.Port, i *Intrinsic) error {
 }
 
 func proxyUDP(p core.Port) error {
+	p = core.AsSyncPort(p)
 	for {
 		data, err := p.Unpack()
 		if err != nil {
