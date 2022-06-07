@@ -230,10 +230,14 @@ func main() {
 		log.SetOutput(ioutil.Discard)
 	}
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
-	go func() {
-		updateLocalHostSet()
-		monitorLocalConfig()
-	}()
+	if _, err := os.Stat(options.LocalConfig); err != nil {
+		log.Println(err)
+	} else {
+		go func() {
+			updateLocalHostSet()
+			monitorLocalConfig()
+		}()
+	}
 	go updateOnlineConfigPeriodically()
 	laddr, err := net.ResolveUDPAddr("udp", options.Local)
 	if err != nil {
