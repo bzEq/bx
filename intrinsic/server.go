@@ -94,24 +94,22 @@ func proxyUDP(p core.Port) error {
 }
 
 func Serve(p core.Port) error {
-	for {
-		pack, err := p.Unpack()
-		if err != nil {
-			return err
-		}
-		buf := bytes.NewBuffer(pack)
-		dec := gob.NewDecoder(buf)
-		var i Intrinsic
-		if err := dec.Decode(&i); err != nil {
-			return err
-		}
-		switch i.Func {
-		case PROXY_UDP:
-			return proxyUDP(p)
-		case PROXY_TCP:
-			return proxyTCP(p, &i)
-		default:
-			return fmt.Errorf("Unsupported function: %d", i.Func)
-		}
+	pack, err := p.Unpack()
+	if err != nil {
+		return err
+	}
+	buf := bytes.NewBuffer(pack)
+	dec := gob.NewDecoder(buf)
+	var i Intrinsic
+	if err := dec.Decode(&i); err != nil {
+		return err
+	}
+	switch i.Func {
+	case PROXY_UDP:
+		return proxyUDP(p)
+	case PROXY_TCP:
+		return proxyTCP(p, &i)
+	default:
+		return fmt.Errorf("Unsupported function: %d", i.Func)
 	}
 }
