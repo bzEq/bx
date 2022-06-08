@@ -16,7 +16,7 @@ func main() {
 	flag.StringVar(&localAddr, "c", "localhost:1080", "Address of local server")
 	flag.Parse()
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
-	UAC := make(chan *net.UDPAddr)
+	udpAddrChan := make(chan *net.UDPAddr)
 	go func() {
 		laddr, err := net.ResolveUDPAddr("udp", localAddr)
 		if err != nil {
@@ -29,7 +29,7 @@ func main() {
 			return
 		}
 		defer ln.Close()
-		UAC <- ln.LocalAddr().(*net.UDPAddr)
+		udpAddrChan <- ln.LocalAddr().(*net.UDPAddr)
 		for {
 			req := make([]byte, core.DEFAULT_UDP_BUFFER_SIZE)
 			n, remoteAddr, err := ln.ReadFromUDP(req)
@@ -38,7 +38,7 @@ func main() {
 				continue
 			}
 			s := socks.Server{
-				UA: ln.LocalAddr().(*net.UDPAddr),
+				UDPAddr: ln.LocalAddr().(*net.UDPAddr),
 			}
 			go func() {
 				if err := s.ServeUDP(ln, remoteAddr, req[:n]); err != nil {
@@ -53,7 +53,7 @@ func main() {
 		return
 	}
 	defer ln.Close()
-	UA := <-UAC
+	udpAddr := <-udpAddrChan
 	for {
 		c, err := ln.Accept()
 		if err != nil {
@@ -61,7 +61,7 @@ func main() {
 			return
 		}
 		s := socks.Server{
-			UA: UA,
+			UDPAddr: udpAddr,
 		}
 		go func() {
 			if err := s.Serve(c); err != nil {

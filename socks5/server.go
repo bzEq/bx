@@ -41,7 +41,7 @@ const (
 )
 
 type Server struct {
-	UA *net.UDPAddr
+	UDPAddr *net.UDPAddr
 	// Support custom dial.
 	Dial func(string, string) (net.Conn, error)
 }
@@ -200,7 +200,7 @@ func (self *Server) Serve(c net.Conn) error {
 	case CMD_CONNECT:
 		return self.handleConnect(c, req)
 	case CMD_UDP_ASSOCIATE:
-		if self.UA == nil {
+		if self.UDPAddr == nil {
 			return fmt.Errorf("UDP server is not initialized")
 		}
 		return self.handleUDPAssociate(c, req)
@@ -220,14 +220,14 @@ func (self *Server) handleUDPAssociate(c net.Conn, req Request) error {
 	reply := Reply{
 		VER:      req.VER,
 		REP:      REP_SUCC,
-		BND_ADDR: []byte(self.UA.IP),
+		BND_ADDR: []byte(self.UDPAddr.IP),
 	}
-	if self.UA.IP.To4() == nil {
+	if self.UDPAddr.IP.To4() == nil {
 		reply.ATYP = ATYP_IPV6
 	} else {
 		reply.ATYP = ATYP_IPV4
 	}
-	binary.BigEndian.PutUint16(reply.BND_PORT[:], uint16(self.UA.Port))
+	binary.BigEndian.PutUint16(reply.BND_PORT[:], uint16(self.UDPAddr.Port))
 	if err := self.sendReply(c, reply); err != nil {
 		return err
 	}
