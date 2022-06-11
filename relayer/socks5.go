@@ -48,15 +48,15 @@ func createProtocol(name string) core.Protocol {
 func CreateProtocol(name string) core.Protocol { return createProtocol(name) }
 
 type SocksRelayer struct {
-	Listen        func(string) (net.Listener, error)
+	Listen        func(string, string) (net.Listener, error)
 	Local         string
-	Dial          func(string) (net.Conn, error)
+	Dial          func(string, string) (net.Conn, error)
 	Next          []string
 	RelayProtocol string
 }
 
 func (self *SocksRelayer) Run() {
-	l, err := self.Listen(self.Local)
+	l, err := self.Listen("tcp", self.Local)
 	if err != nil {
 		log.Println(err)
 		return
@@ -78,7 +78,7 @@ func (self *SocksRelayer) Run() {
 
 func (self *SocksRelayer) ServeAsIntermediateRelayer(red net.Conn) {
 	defer red.Close()
-	blue, err := self.Dial(self.Next[rand.Uint64()%uint64(len(self.Next))])
+	blue, err := self.Dial("tcp", self.Next[rand.Uint64()%uint64(len(self.Next))])
 	if err != nil {
 		log.Println(err)
 		return

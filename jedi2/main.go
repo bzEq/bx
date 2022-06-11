@@ -50,12 +50,12 @@ func startRelayer(localAddr string) {
 	}
 	if options.UseTLS && len(r.Next) != 0 {
 		config := &tls.Config{InsecureSkipVerify: true, NextProtos: []string{options.ProtocolName}}
-		r.Dial = func(address string) (net.Conn, error) {
-			return tls.Dial("tcp", address, config)
+		r.Dial = func(network, address string) (net.Conn, error) {
+			return tls.Dial(network, address, config)
 		}
 	} else {
-		r.Dial = func(address string) (net.Conn, error) {
-			return net.Dial("tcp", address)
+		r.Dial = func(network, address string) (net.Conn, error) {
+			return net.Dial(network, address)
 		}
 	}
 	if options.UseTLS && len(r.Next) == 0 {
@@ -64,12 +64,12 @@ func startRelayer(localAddr string) {
 			log.Println(err)
 			return
 		}
-		r.Listen = func(address string) (net.Listener, error) {
-			return tls.Listen("tcp", address, config)
+		r.Listen = func(network, address string) (net.Listener, error) {
+			return tls.Listen(network, address, config)
 		}
 	} else {
-		r.Listen = func(address string) (net.Listener, error) {
-			return net.Listen("tcp", address)
+		r.Listen = func(network, address string) (net.Listener, error) {
+			return net.Listen(network, address)
 		}
 	}
 	r.Run()
