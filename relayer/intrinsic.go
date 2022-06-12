@@ -109,5 +109,5 @@ func (self *IntrinsicRelayer) ServeAsLocalRelayer(c net.Conn) {
 func (self *IntrinsicRelayer) ServeAsEndRelayer(c net.Conn) {
 	defer c.Close()
 	cp := core.NewPort(c, createProtocol(self.RelayProtocol))
-	intrinsic.Serve(cp)
+	(&intrinsic.Server{cp}).Run()
 }

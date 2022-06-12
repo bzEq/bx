@@ -19,8 +19,8 @@ type Intrinsic struct {
 }
 
 const (
-	PROXY_UDP = iota + 1
-	PROXY_TCP
+	RELAY_UDP = iota + 1
+	RELAY_TCP
 )
 
 type TCPRequest struct {
@@ -33,26 +33,25 @@ type UDPMessage struct {
 	Data []byte
 }
 
-func proxyTCP(p core.Port, i *Intrinsic) error {
-	var req TCPRequest
-	dec := gob.NewDecoder(bytes.NewBuffer(i.Data))
-	if err := dec.Decode(&req); err != nil {
-		return err
-	}
-	c, err := net.Dial("tcp", req.Addr)
+type Server struct {
+	P core.Port
+}
+
+func (self *Server) relayTCP(addr string) error {
+	c, err := net.Dial("tcp", addr)
 	if err != nil {
 		return err
 	}
 	defer c.Close()
 	cp := core.NewPort(c, nil)
-	core.NewSimpleProtocolSwitch(cp, p).Run()
+	core.NewSimpleProtocolSwitch(cp, self.P).Run()
 	return nil
 }
 
-func proxyUDP(p core.Port) error {
-	p = core.AsSyncPort(p)
+func (self *Server) relayUDP() error {
+	self.P = core.AsSyncPort(self.P)
 	for {
-		data, err := p.Unpack()
+		data, err := self.P.Unpack()
 		if err != nil {
 			return err
 		}
@@ -92,7 +91,7 @@ func proxyUDP(p core.Port) error {
 					log.Println(err)
 					return
 				}
-				if err := p.Pack(pack.Bytes()); err != nil {
+				if err := self.P.Pack(pack.Bytes()); err != nil {
 					log.Println(err)
 					return
 				}
@@ -101,8 +100,8 @@ func proxyUDP(p core.Port) error {
 	}
 }
 
-func Serve(p core.Port) error {
-	pack, err := p.Unpack()
+func (self *Server) Run() error {
+	pack, err := self.P.Unpack()
 	if err != nil {
 		return err
 	}
@@ -113,10 +112,15 @@ func Serve(p core.Port) error {
 		return err
 	}
 	switch i.Func {
-	case PROXY_UDP:
-		return proxyUDP(p)
-	case PROXY_TCP:
-		return proxyTCP(p, &i)
+	case RELAY_UDP:
+		return self.relayUDP()
+	case RELAY_TCP:
+		var req TCPRequest
+		dec := gob.NewDecoder(bytes.NewBuffer(i.Data))
+		if err := dec.Decode(&req); err != nil {
+			return err
+		}
+		return self.relayTCP(req.Addr)
 	default:
 		return fmt.Errorf("Unsupported function: %d", i.Func)
 	}
