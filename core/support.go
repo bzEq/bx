@@ -112,7 +112,3 @@ func SyncMapSize(m *sync.Map) int {
 	})
 	return n
 }
-
-func AlignTo(size, align int) int {
-	return (size + align - 1) & (align - 1)
-}

@@ -63,7 +63,7 @@ func (self *RawNetPort) Pack(data []byte) error {
 func (self *RawNetPort) Unpack() ([]byte, error) {
 	if len(self.buf) < DEFAULT_UDP_BUFFER_SIZE {
 		if DEFAULT_BUFFER_SIZE < self.nr && self.nr < MAX_BUFFER_SIZE {
-			self.buf = make([]byte, AlignTo(self.nr, 8))
+			self.buf = make([]byte, self.nr)
 		} else {
 			self.buf = make([]byte, DEFAULT_BUFFER_SIZE)
 		}
