@@ -21,7 +21,7 @@ type Route struct {
 // A 1:N router.
 type SimpleRouter struct {
 	One Port
-	Mux Mux
+	N   Mux
 	r   sync.Map
 }
 
@@ -40,7 +40,7 @@ func (self *SimpleRouter) NewRoute(id uint64, P Port) (*Route, error) {
 				r.Err <- err
 				return
 			}
-			buf, err = self.Mux.Forward(id, buf)
+			buf, err = self.N.Forward(id, buf)
 			if err != nil {
 				r.Err <- err
 				return
@@ -61,7 +61,7 @@ func (self *SimpleRouter) Run() {
 			log.Println(err)
 			return
 		}
-		id, buf, err := self.Mux.Dispatch(buf)
+		id, buf, err := self.N.Dispatch(buf)
 		if err != nil {
 			log.Println(err)
 			continue

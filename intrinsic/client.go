@@ -56,7 +56,7 @@ func (self *ClientContext) dialUDP(network, addr string) (net.Conn, error) {
 			log.Println(err)
 			return
 		}
-		mux := router.Mux.(*UDPDispatcher)
+		mux := router.N.(*UDPDispatcher)
 		id := mux.NewId(addr)
 		defer mux.FreeId(id)
 		cp := core.NewSyncPortWithTimeout(c, nil, core.DEFAULT_UDP_TIMEOUT)
@@ -117,7 +117,7 @@ func (self *ClientContext) getRouter() (*core.SimpleRouter, error) {
 			}
 			router := &core.SimpleRouter{
 				One: core.NewSyncPort(c, self.GetProtocol()),
-				Mux: &UDPDispatcher{},
+				N:   &UDPDispatcher{},
 			}
 			self.routers.Store(router, true)
 			// Prepare UDP proxy.
