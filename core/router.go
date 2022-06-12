@@ -31,8 +31,8 @@ func (self *SimpleRouter) NewRoute(id uint64, P Port) (*Route, error) {
 		return v.(*Route), fmt.Errorf("Route #%d exists", id)
 	}
 	go func() {
-		log.Printf("Running route #%d\n", id)
-		defer log.Printf("Exiting route #%d\n", id)
+		// log.Printf("Running route #%d\n", id)
+		// defer log.Printf("Exiting route #%d\n", id)
 		defer self.r.Delete(id)
 		for {
 			buf, err := r.P.Unpack()
