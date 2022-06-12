@@ -13,6 +13,7 @@ const DEFAULT_TIMEOUT = 600
 const DEFAULT_UDP_TIMEOUT = 10
 const DEFAULT_BUFFER_SIZE = 32 << 10
 const DEFAULT_UDP_BUFFER_SIZE = 2 << 10
+const MAX_BUFFER_SIZE = 4 << 20
 
 type Port interface {
 	Pack([]byte) error
@@ -48,6 +49,7 @@ type RawNetPort struct {
 	C       net.Conn
 	timeout time.Duration
 	buf     []byte
+	nr      int
 }
 
 func (self *RawNetPort) Pack(data []byte) error {
@@ -60,7 +62,11 @@ func (self *RawNetPort) Pack(data []byte) error {
 
 func (self *RawNetPort) Unpack() ([]byte, error) {
 	if len(self.buf) < DEFAULT_UDP_BUFFER_SIZE {
-		self.buf = make([]byte, DEFAULT_BUFFER_SIZE)
+		if DEFAULT_BUFFER_SIZE < self.nr && self.nr < MAX_BUFFER_SIZE {
+			self.buf = make([]byte, self.nr)
+		} else {
+			self.buf = make([]byte, DEFAULT_BUFFER_SIZE)
+		}
 	}
 	if err := self.C.SetReadDeadline(time.Now().Add(self.timeout)); err != nil {
 		return nil, err
@@ -69,6 +75,7 @@ func (self *RawNetPort) Unpack() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	self.nr = nr
 	data := self.buf[:nr]
 	self.buf = self.buf[nr:]
 	return data, nil
