@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"encoding/gob"
 	"fmt"
+	"log"
 	"net"
 	"time"
 
@@ -55,38 +56,45 @@ func proxyUDP(p core.Port) error {
 		if err != nil {
 			return err
 		}
-		go func() error {
+		go func() {
 			var msg UDPMessage
 			dec := gob.NewDecoder(bytes.NewBuffer(data))
 			if err := dec.Decode(&msg); err != nil {
-				return err
+				log.Println(err)
+				return
 			}
 			c, err := net.Dial("udp", msg.Addr)
 			if err != nil {
-				return err
+				log.Println(err)
+				return
 			}
 			defer c.Close()
 			_, err = c.Write(msg.Data)
 			if err != nil {
-				return err
+				log.Println(err)
+				return
 			}
 			buf := make([]byte, core.DEFAULT_UDP_BUFFER_SIZE)
 			for {
 				if err := c.SetReadDeadline(time.Now().Add(core.DEFAULT_UDP_TIMEOUT * time.Second)); err != nil {
-					return err
+					log.Println(err)
+					return
 				}
 				n, err := c.Read(buf)
 				if err != nil {
-					return err
+					log.Println(err)
+					return
 				}
 				msg.Data = buf[:n]
 				var pack bytes.Buffer
 				enc := gob.NewEncoder(&pack)
 				if err := enc.Encode(&msg); err != nil {
-					return err
+					log.Println(err)
+					return
 				}
 				if err := p.Pack(pack.Bytes()); err != nil {
-					return err
+					log.Println(err)
+					return
 				}
 			}
 		}()
