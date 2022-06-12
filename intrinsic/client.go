@@ -49,12 +49,12 @@ func (self *ClientContext) Dial(network string, addr string) (net.Conn, error) {
 func (self *ClientContext) dialUDP(network, addr string) (net.Conn, error) {
 	local := core.MakePipe()
 	c := local[1]
-	go func() error {
+	go func() {
 		defer c.Close()
 		router, err := self.getRouter()
 		if err != nil {
 			log.Println(err)
-			return err
+			return
 		}
 		mux := router.Mux.(*UDPDispatcher)
 		id := mux.NewId(addr)
@@ -63,9 +63,9 @@ func (self *ClientContext) dialUDP(network, addr string) (net.Conn, error) {
 		r, err := router.NewRoute(id, cp)
 		if err != nil {
 			log.Println(err)
-			return err
+			return
 		}
-		return <-r.Err
+		<-r.Err
 	}()
 	return local[0], nil
 }
