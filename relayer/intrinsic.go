@@ -18,6 +18,7 @@ type IntrinsicRelayer struct {
 	Dial          func(string, string) (net.Conn, error)
 	Next          []string
 	RelayProtocol string
+	NumUDPMux     int
 	NoUDP         bool
 	udpAddr       *net.UDPAddr
 }
@@ -37,7 +38,7 @@ func (self *IntrinsicRelayer) startLocalUDPServer() error {
 		context := &intrinsic.ClientContext{
 			GetProtocol: func() core.Protocol { return createProtocol(self.RelayProtocol) },
 			Next:        self.Next[0],
-			Limit:       8,
+			Limit:       self.NumUDPMux,
 			InternalDial: func(network, addr string) (net.Conn, error) {
 				return self.Dial(network, addr)
 			},

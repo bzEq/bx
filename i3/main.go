@@ -46,6 +46,7 @@ func startRelayer(localAddr string) {
 	r := &relayer.IntrinsicRelayer{}
 	r.Local = localAddr
 	r.RelayProtocol = options.ProtocolName
+	r.NumUDPMux = options.NumConn
 	r.NoUDP = options.NoUDP
 	if options.Next != "" {
 		r.Next = strings.Split(options.Next, ",")
@@ -86,6 +87,7 @@ func main() {
 	flag.StringVar(&options.Next, "r", "", "Address of next-hop relayer")
 	flag.StringVar(&options.ProtocolName, "p", "", "Name of relay protocol")
 	flag.BoolVar(&options.UseTLS, "tls", false, "Use TLS")
+	flag.IntVar(&options.NumConn, "j", 4, "Number of connections for UDP Mux")
 	flag.BoolVar(&options.NoUDP, "no_udp", false, "Disable UDP support")
 	flag.BoolVar(&debug, "debug", false, "Enable debug logging")
 	flag.Parse()
