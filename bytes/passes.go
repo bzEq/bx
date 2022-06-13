@@ -132,7 +132,7 @@ func (self *Padding) RunOnBytes(p []byte) ([]byte, error) {
 	s := uint16(rand.Uint32())
 	m := uint16(rand.Uint32())
 	if l < MIN_BLOCK_SIZE {
-		n = uint16(MIN_BLOCK_SIZE-l) + s%8
+		n = uint16(MIN_BLOCK_SIZE-l) + s%64
 	}
 	binary.Write(buf, binary.BigEndian, n)
 	if m == 0 {
