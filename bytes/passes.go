@@ -13,6 +13,8 @@ import (
 	"io"
 	"io/ioutil"
 	"math/rand"
+
+	lz4 "github.com/bzEq/bx/third_party/lz4v3"
 )
 
 type DummyPass struct{}
@@ -196,4 +198,28 @@ func (self *DeRotateLeft) RunOnBytes(p []byte) ([]byte, error) {
 	dst.Write(src[offset:])
 	dst.Write(src[:offset])
 	return dst.Bytes(), nil
+}
+
+type LZ4Compressor struct{}
+
+func (self *LZ4Compressor) RunOnBytes(p []byte) ([]byte, error) {
+	out := &bytes.Buffer{}
+	zw := lz4.NewWriter(out)
+	defer zw.Close()
+	if _, err := zw.Write(p); err != nil {
+		return out.Bytes(), err
+	}
+	err := zw.Flush()
+	return out.Bytes(), err
+}
+
+type LZ4Decompressor struct{}
+
+func (self *LZ4Decompressor) RunOnBytes(p []byte) ([]byte, error) {
+	zr := lz4.NewReader(bytes.NewBuffer(p))
+	out, err := ioutil.ReadAll(zr)
+	if err != io.EOF {
+		return out, err
+	}
+	return out, nil
 }

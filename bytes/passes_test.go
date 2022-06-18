@@ -19,6 +19,18 @@ func TestCompress(t *testing.T) {
 	}
 }
 
+func TestLZ4Compress(t *testing.T) {
+	pm := core.NewPassManager()
+	pm.AddPass(&LZ4Compressor{})
+	pm.AddPass(&LZ4Decompressor{})
+	r, err := pm.RunOnBytes([]byte("wtfwtfwtfwtf"))
+	if string(r) != "wtfwtfwtfwtf" || err != nil {
+		t.Log(err)
+		t.Log(r)
+		t.Fail()
+	}
+}
+
 func TestRC4(t *testing.T) {
 	pm := core.NewPassManager()
 	pm.AddPass(&RC4Enc{})
