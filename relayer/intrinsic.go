@@ -21,6 +21,7 @@ type IntrinsicRelayer struct {
 	NumUDPMux     int
 	NoUDP         bool
 	udpAddr       *net.UDPAddr
+	Password      string
 }
 
 func (self *IntrinsicRelayer) startLocalUDPServer() error {
@@ -36,6 +37,7 @@ func (self *IntrinsicRelayer) startLocalUDPServer() error {
 	go func() {
 		defer ln.Close()
 		context := &intrinsic.ClientContext{
+			Password:    self.Password,
 			GetProtocol: func() core.Protocol { return createProtocol(self.RelayProtocol) },
 			Next:        self.Next[0],
 			Limit:       self.NumUDPMux,
@@ -95,6 +97,7 @@ func (self *IntrinsicRelayer) Run() {
 func (self *IntrinsicRelayer) ServeAsLocalRelayer(c net.Conn) {
 	defer c.Close()
 	context := intrinsic.ClientContext{
+		Password:     self.Password,
 		GetProtocol:  func() core.Protocol { return createProtocol(self.RelayProtocol) },
 		Next:         self.Next[rand.Uint64()%uint64(len(self.Next))],
 		InternalDial: self.Dial,
@@ -110,5 +113,5 @@ func (self *IntrinsicRelayer) ServeAsLocalRelayer(c net.Conn) {
 func (self *IntrinsicRelayer) ServeAsEndRelayer(c net.Conn) {
 	defer c.Close()
 	cp := core.NewPort(c, createProtocol(self.RelayProtocol))
-	(&intrinsic.Server{cp}).Run()
+	(&intrinsic.Server{PW: self.Password, P: cp}).Run()
 }

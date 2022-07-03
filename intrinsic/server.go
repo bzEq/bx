@@ -14,8 +14,9 @@ import (
 )
 
 type Intrinsic struct {
-	Func byte
-	Data []byte
+	Password string
+	Func     byte
+	Data     []byte
 }
 
 const (
@@ -34,7 +35,8 @@ type UDPMessage struct {
 }
 
 type Server struct {
-	P core.Port
+	PW string
+	P  core.Port
 }
 
 func (self *Server) relayTCP(addr string) error {
@@ -110,6 +112,9 @@ func (self *Server) Run() error {
 	var i Intrinsic
 	if err := dec.Decode(&i); err != nil {
 		return err
+	}
+	if i.Password == "" || self.PW != i.Password {
+		return fmt.Errorf("Wrong password")
 	}
 	switch i.Func {
 	case RELAY_UDP:
