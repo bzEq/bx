@@ -17,7 +17,6 @@ import (
 )
 
 type ClientContext struct {
-	Password     string
 	GetProtocol  func() core.Protocol
 	Limit        int
 	Next         string
@@ -76,7 +75,7 @@ func (self *ClientContext) dialTCP(network, addr string) (net.Conn, error) {
 	if err != nil {
 		return nil, err
 	}
-	i := Intrinsic{Password: self.Password, Func: RELAY_TCP}
+	i := Intrinsic{Func: RELAY_TCP}
 	{
 		data := &bytes.Buffer{}
 		req := TCPRequest{Addr: addr}
@@ -124,7 +123,7 @@ func (self *ClientContext) getRouter() (*core.SimpleRouter, error) {
 			// Prepare UDP proxy.
 			var buf bytes.Buffer
 			enc := gob.NewEncoder(&buf)
-			i := Intrinsic{Password: self.Password, Func: RELAY_UDP}
+			i := Intrinsic{Func: RELAY_UDP}
 			if err := enc.Encode(&i); err != nil {
 				c.Close()
 				log.Println(err)

@@ -6,10 +6,8 @@ package main
 
 import (
 	crand "crypto/rand"
-	"crypto/sha256"
 	"crypto/tls"
 	"encoding/binary"
-	"encoding/hex"
 	"flag"
 	"io/ioutil"
 	"log"
@@ -29,7 +27,6 @@ var options struct {
 	NumConn      int
 	UseTLS       bool
 	NoUDP        bool
-	Password     string
 }
 
 func startRelayers() {
@@ -51,10 +48,6 @@ func startRelayer(localAddr string) {
 	r.RelayProtocol = options.ProtocolName
 	r.NumUDPMux = options.NumConn
 	r.NoUDP = options.NoUDP
-	{
-		sum := sha256.Sum256([]byte(options.Password))
-		r.Password = hex.EncodeToString(sum[:])
-	}
 	if options.Next != "" {
 		r.Next = strings.Split(options.Next, ",")
 	}
@@ -96,7 +89,6 @@ func main() {
 	flag.BoolVar(&options.UseTLS, "tls", false, "Use TLS")
 	flag.IntVar(&options.NumConn, "j", 4, "Number of connections for UDP Mux")
 	flag.BoolVar(&options.NoUDP, "no_udp", false, "Disable UDP support")
-	flag.StringVar(&options.Password, "pw", "", "Password")
 	flag.BoolVar(&debug, "debug", false, "Enable debug logging")
 	flag.Parse()
 	if !debug {
