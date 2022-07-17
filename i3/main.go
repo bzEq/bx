@@ -21,12 +21,13 @@ import (
 )
 
 var options struct {
-	Local        string
-	Next         string
-	ProtocolName string
-	NumConn      int
-	UseTLS       bool
-	NoUDP        bool
+	Local          string
+	LocalHTTPProxy string
+	Next           string
+	ProtocolName   string
+	NumConn        int
+	UseTLS         bool
+	NoUDP          bool
 }
 
 func startRelayers() {
@@ -45,6 +46,7 @@ func startRelayers() {
 func startRelayer(localAddr string) {
 	r := &relayer.IntrinsicRelayer{}
 	r.Local = localAddr
+	r.LocalHTTPProxy = options.LocalHTTPProxy
 	r.RelayProtocol = options.ProtocolName
 	r.NumUDPMux = options.NumConn
 	r.NoUDP = options.NoUDP
@@ -84,6 +86,7 @@ func main() {
 	rand.Seed(seed)
 	var debug bool
 	flag.StringVar(&options.Local, "c", "localhost:1080", "Addresses of local relayers")
+	flag.StringVar(&options.LocalHTTPProxy, "http", "", "Address of local http proxy")
 	flag.StringVar(&options.Next, "r", "", "Address of next-hop relayer")
 	flag.StringVar(&options.ProtocolName, "p", "", "Name of relay protocol")
 	flag.BoolVar(&options.UseTLS, "tls", false, "Use TLS")

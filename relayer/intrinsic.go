@@ -6,21 +6,46 @@ import (
 	"log"
 	"math/rand"
 	"net"
+	"net/http"
 
 	"github.com/bzEq/bx/core"
+	hfe "github.com/bzEq/bx/frontend/http"
 	socks "github.com/bzEq/bx/frontend/socks5"
 	"github.com/bzEq/bx/intrinsic"
 )
 
 type IntrinsicRelayer struct {
-	Listen        func(string, string) (net.Listener, error)
-	Local         string
-	Dial          func(string, string) (net.Conn, error)
-	Next          []string
-	RelayProtocol string
-	NumUDPMux     int
-	NoUDP         bool
-	udpAddr       *net.UDPAddr
+	Listen         func(string, string) (net.Listener, error)
+	Local          string
+	LocalHTTPProxy string
+	Dial           func(string, string) (net.Conn, error)
+	Next           []string
+	RelayProtocol  string
+	NumUDPMux      int
+	NoUDP          bool
+	udpAddr        *net.UDPAddr
+}
+
+func (self *IntrinsicRelayer) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	context := intrinsic.ClientContext{
+		GetProtocol:  func() core.Protocol { return createProtocol(self.RelayProtocol) },
+		Next:         self.Next[rand.Uint64()%uint64(len(self.Next))],
+		InternalDial: self.Dial,
+	}
+	context.Init()
+	proxy := &hfe.HTTPProxy{
+		Dial: context.Dial,
+	}
+	proxy.ServeHTTP(w, req)
+}
+
+func (self *IntrinsicRelayer) startLocalHTTPProxy() error {
+	server := &http.Server{
+		Addr:    self.LocalHTTPProxy,
+		Handler: self,
+	}
+	go server.ListenAndServe()
+	return nil
 }
 
 func (self *IntrinsicRelayer) startLocalUDPServer() error {
@@ -68,6 +93,12 @@ func (self *IntrinsicRelayer) startLocalUDPServer() error {
 func (self *IntrinsicRelayer) Run() {
 	if len(self.Next) != 0 && !self.NoUDP {
 		if err := self.startLocalUDPServer(); err != nil {
+			log.Println(err)
+			return
+		}
+	}
+	if len(self.Next) != 0 && self.LocalHTTPProxy != "" {
+		if err := self.startLocalHTTPProxy(); err != nil {
 			log.Println(err)
 			return
 		}
