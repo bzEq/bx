@@ -27,13 +27,19 @@ type IntrinsicRelayer struct {
 	udpAddr        *net.UDPAddr
 }
 
-func (self *IntrinsicRelayer) startLocalHTTPProxy() error {
-	context := intrinsic.ClientContext{
+func (self *IntrinsicRelayer) createClientContext() *intrinsic.ClientContext {
+	context := &intrinsic.ClientContext{
 		GetProtocol:  func() core.Protocol { return createProtocol(self.RelayProtocol) },
 		Next:         self.Next[rand.Uint64()%uint64(len(self.Next))],
+		Limit:        self.NumUDPMux,
 		InternalDial: self.Dial,
 	}
 	context.Init()
+	return context
+}
+
+func (self *IntrinsicRelayer) startLocalHTTPProxy() error {
+	context := self.createClientContext()
 	socksProxyURL, err := url.Parse("socks5://" + self.Local)
 	if err != nil {
 		log.Println(err)
@@ -63,15 +69,7 @@ func (self *IntrinsicRelayer) startLocalUDPServer() error {
 	self.udpAddr = ln.LocalAddr().(*net.UDPAddr)
 	go func() {
 		defer ln.Close()
-		context := &intrinsic.ClientContext{
-			GetProtocol: func() core.Protocol { return createProtocol(self.RelayProtocol) },
-			Next:        self.Next[0],
-			Limit:       self.NumUDPMux,
-			InternalDial: func(network, addr string) (net.Conn, error) {
-				return self.Dial(network, addr)
-			},
-		}
-		context.Init()
+		context := self.createClientContext()
 		for {
 			req := make([]byte, core.DEFAULT_UDP_BUFFER_SIZE)
 			n, remoteAddr, err := ln.ReadFromUDP(req)
@@ -129,12 +127,7 @@ func (self *IntrinsicRelayer) Run() {
 
 func (self *IntrinsicRelayer) ServeAsLocalRelayer(c net.Conn) {
 	defer c.Close()
-	context := intrinsic.ClientContext{
-		GetProtocol:  func() core.Protocol { return createProtocol(self.RelayProtocol) },
-		Next:         self.Next[rand.Uint64()%uint64(len(self.Next))],
-		InternalDial: self.Dial,
-	}
-	context.Init()
+	context := self.createClientContext()
 	s := socks.Server{
 		UDPAddr: self.udpAddr,
 		Dial:    context.Dial,
