@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"net"
 	"net/http"
+	"net/url"
 
 	"github.com/bzEq/bx/core"
 	hfe "github.com/bzEq/bx/frontend/http"
@@ -33,8 +34,14 @@ func (self *IntrinsicRelayer) ServeHTTP(w http.ResponseWriter, req *http.Request
 		InternalDial: self.Dial,
 	}
 	context.Init()
+	socksProxyURL, err := url.Parse("socks5://" + self.Local)
+	if err != nil {
+		log.Println(err)
+		return
+	}
 	proxy := &hfe.HTTPProxy{
-		Dial: context.Dial,
+		Dial:      context.Dial,
+		Transport: &http.Transport{Proxy: http.ProxyURL(socksProxyURL)},
 	}
 	proxy.ServeHTTP(w, req)
 }
@@ -97,18 +104,19 @@ func (self *IntrinsicRelayer) Run() {
 			return
 		}
 	}
-	if len(self.Next) != 0 && self.LocalHTTPProxy != "" {
-		if err := self.startLocalHTTPProxy(); err != nil {
-			log.Println(err)
-			return
-		}
-	}
 	ln, err := self.Listen("tcp", self.Local)
 	if err != nil {
 		log.Println(err)
 		return
 	}
 	defer ln.Close()
+	// self.LocalHTTPProxy relies on socks proxy.
+	if len(self.Next) != 0 && self.LocalHTTPProxy != "" {
+		if err := self.startLocalHTTPProxy(); err != nil {
+			log.Println(err)
+			return
+		}
+	}
 	for {
 		c, err := ln.Accept()
 		if err != nil {
