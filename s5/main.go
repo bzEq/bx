@@ -8,7 +8,7 @@ import (
 	"net"
 
 	"github.com/bzEq/bx/core"
-	socks "github.com/bzEq/bx/socks5"
+	socks "github.com/bzEq/bx/frontend/socks5"
 )
 
 func main() {
