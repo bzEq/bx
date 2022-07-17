@@ -1,6 +1,6 @@
 // Copyright (c) 2020 Kai Luo <gluokai@gmail.com>. All rights reserved.
 
-package socks
+package socks5
 
 import (
 	"encoding/binary"

@@ -8,8 +8,8 @@ import (
 	"net"
 
 	"github.com/bzEq/bx/core"
+	socks "github.com/bzEq/bx/frontend/socks5"
 	"github.com/bzEq/bx/intrinsic"
-	socks "github.com/bzEq/bx/socks5"
 )
 
 type IntrinsicRelayer struct {
