@@ -34,6 +34,7 @@ func (self *HTTPProxy) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	if req.Method != http.MethodConnect {
 		log.Println("Method unsupported")
 		http.Error(w, "Method unsupported", http.StatusServiceUnavailable)
+		return
 	}
 	w.WriteHeader(http.StatusOK)
 	h, ok := w.(http.Hijacker)
