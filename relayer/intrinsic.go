@@ -27,7 +27,7 @@ type IntrinsicRelayer struct {
 	udpAddr        *net.UDPAddr
 }
 
-func (self *IntrinsicRelayer) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+func (self *IntrinsicRelayer) startLocalHTTPProxy() error {
 	context := intrinsic.ClientContext{
 		GetProtocol:  func() core.Protocol { return createProtocol(self.RelayProtocol) },
 		Next:         self.Next[rand.Uint64()%uint64(len(self.Next))],
@@ -37,19 +37,15 @@ func (self *IntrinsicRelayer) ServeHTTP(w http.ResponseWriter, req *http.Request
 	socksProxyURL, err := url.Parse("socks5://" + self.Local)
 	if err != nil {
 		log.Println(err)
-		return
+		return err
 	}
 	proxy := &hfe.HTTPProxy{
 		Dial:      context.Dial,
 		Transport: &http.Transport{Proxy: http.ProxyURL(socksProxyURL)},
 	}
-	proxy.ServeHTTP(w, req)
-}
-
-func (self *IntrinsicRelayer) startLocalHTTPProxy() error {
 	server := &http.Server{
 		Addr:    self.LocalHTTPProxy,
-		Handler: self,
+		Handler: proxy,
 	}
 	go server.ListenAndServe()
 	return nil
