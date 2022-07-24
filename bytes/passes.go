@@ -226,8 +226,9 @@ type Reverse struct{}
 func (self *Reverse) RunOnBytes(src []byte) (dst []byte, err error) {
 	l := len(src)
 	dst = make([]byte, l)
-	for i := 0; i < l; i++ {
-		dst[l-1-i] = src[i]
+	copy(dst, src)
+	for i := 0; i < l/2; i++ {
+		dst[i], dst[l-1-i] = dst[l-1-i], dst[i]
 	}
 	return
 }
