@@ -69,8 +69,8 @@ func TestRotateLeft(t *testing.T) {
 
 func TestIntegration(t *testing.T) {
 	pm := core.NewPassManager()
-	pm.AddPass(&Padding{}).AddPass(&Reverse{}).AddPass(&RotateLeft{}).AddPass(&Compressor{})
-	pm.AddPass(&Decompressor{}).AddPass(&DeRotateLeft{}).AddPass(&Reverse{}).AddPass(&DePadding{})
+	pm.AddPass(&Padding{}).AddPass(&LZ4Compressor{}).AddPass(&Reverse{}).AddPass(&RotateLeft{})
+	pm.AddPass(&DeRotateLeft{}).AddPass(&Reverse{}).AddPass(&LZ4Decompressor{}).AddPass(&DePadding{})
 	r, err := pm.RunOnBytes([]byte("wtfwtfwtf"))
 	if string(r) != "wtfwtfwtf" || err != nil {
 		t.Log(err)
