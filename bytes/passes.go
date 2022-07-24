@@ -127,16 +127,13 @@ func (self *RC4Dec) RunOnBytes(p []byte) ([]byte, error) {
 type Padding struct{}
 
 func (self *Padding) RunOnBytes(p []byte) ([]byte, error) {
-	const MIN_BLOCK_SIZE = 256
+	const NUM_RANDOM_BYTES = uint16(16)
 	buf := new(bytes.Buffer)
-	l := len(p)
 	var n uint16
-	s := uint16(rand.Uint32())
-	m := uint16(rand.Uint32())
-	if l < MIN_BLOCK_SIZE {
-		n = uint16(MIN_BLOCK_SIZE-l) + s%64
-	}
+	s := uint16(rand.Uint64())
+	n = s % NUM_RANDOM_BYTES
 	binary.Write(buf, binary.BigEndian, n)
+	m := uint16(rand.Uint64())
 	if m == 0 {
 		m = ^uint16(0)
 	}
