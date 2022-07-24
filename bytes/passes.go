@@ -224,10 +224,10 @@ func (self *LZ4Decompressor) RunOnBytes(p []byte) ([]byte, error) {
 type Reverse struct{}
 
 func (self *Reverse) RunOnBytes(src []byte) (dst []byte, err error) {
-	buf := &bytes.Buffer{}
 	l := len(src)
-	for i, _ := range src {
-		buf.WriteByte(src[l-1-i])
+	dst = make([]byte, l)
+	for i := 0; i < l; i++ {
+		dst[l-1-i] = src[i]
 	}
-	return buf.Bytes(), nil
+	return
 }
