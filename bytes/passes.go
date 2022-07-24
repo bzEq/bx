@@ -226,10 +226,11 @@ func (self *LZ4Decompressor) RunOnBytes(p []byte) ([]byte, error) {
 
 type Reverse struct{}
 
-func (self *Reverse) RunOnBytes(p []byte) ([]byte, error) {
-	l := len(p)
+func (self *Reverse) RunOnBytes(src []byte) (dst []byte, err error) {
+	l := len(src)
+	dst = make([]byte, l)
 	for i := 0; i < l/2; i++ {
-		p[i], p[l-1-i] = p[l-1-i], p[i]
+		dst[i], dst[l-1-i] = src[l-1-i], src[i]
 	}
-	return p, nil
+	return
 }
