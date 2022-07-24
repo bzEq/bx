@@ -223,3 +223,13 @@ func (self *LZ4Decompressor) RunOnBytes(p []byte) ([]byte, error) {
 	}
 	return out, nil
 }
+
+type Reverse struct{}
+
+func (self *Reverse) RunOnBytes(p []byte) ([]byte, error) {
+	l := len(p)
+	for i := 0; i < l/2; i++ {
+		p[i], p[l-1-i] = p[l-1-i], p[i]
+	}
+	return p, nil
+}
