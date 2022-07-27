@@ -67,10 +67,22 @@ func TestRotateLeft(t *testing.T) {
 	}
 }
 
+func TestByteSwap(t *testing.T) {
+	pm := core.NewPassManager()
+	pm.AddPass(&ByteSwap{})
+	pm.AddPass(&ByteSwap{})
+	r, err := pm.RunOnBytes([]byte("wtfwtfwtfwtfwtfwtfwtf"))
+	if string(r) != "wtfwtfwtfwtfwtfwtfwtf" || err != nil {
+		t.Log(err)
+		t.Log(r)
+		t.Fail()
+	}
+}
+
 func TestIntegration(t *testing.T) {
 	pm := core.NewPassManager()
-	pm.AddPass(&Padding{}).AddPass(&LZ4Compressor{}).AddPass(&Reverse{}).AddPass(&RotateLeft{})
-	pm.AddPass(&DeRotateLeft{}).AddPass(&Reverse{}).AddPass(&LZ4Decompressor{}).AddPass(&DePadding{})
+	pm.AddPass(&ByteSwap{}).AddPass(&Padding{}).AddPass(&LZ4Compressor{}).AddPass(&Reverse{}).AddPass(&RotateLeft{})
+	pm.AddPass(&DeRotateLeft{}).AddPass(&Reverse{}).AddPass(&LZ4Decompressor{}).AddPass(&DePadding{}).AddPass(&ByteSwap{})
 	r, err := pm.RunOnBytes([]byte("wtfwtfwtf"))
 	if string(r) != "wtfwtfwtf" || err != nil {
 		t.Log(err)

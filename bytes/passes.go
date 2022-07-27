@@ -231,3 +231,23 @@ func (self *Reverse) RunOnBytes(src []byte) (dst []byte, err error) {
 	}
 	return
 }
+
+type ByteSwap struct{}
+
+func (self *ByteSwap) RunOnBytes(p []byte) ([]byte, error) {
+	src := bytes.NewBuffer(p)
+	var dst bytes.Buffer
+	for src.Len() >= 8 {
+		var n uint64
+		binary.Read(src, binary.LittleEndian, &n)
+		binary.Write(&dst, binary.BigEndian, n)
+	}
+	for {
+		b, err := src.ReadByte()
+		if err == io.EOF {
+			break
+		}
+		dst.WriteByte(b)
+	}
+	return dst.Bytes(), nil
+}
