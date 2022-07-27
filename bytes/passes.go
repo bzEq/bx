@@ -13,6 +13,7 @@ import (
 	"io"
 	"io/ioutil"
 	"math/rand"
+	"unsafe"
 
 	lz4 "github.com/bzEq/bx/third_party/lz4v3"
 )
@@ -236,18 +237,12 @@ type ByteSwap struct{}
 
 func (self *ByteSwap) RunOnBytes(p []byte) ([]byte, error) {
 	src := bytes.NewBuffer(p)
-	var dst bytes.Buffer
-	for src.Len() >= 8 {
-		var n uint64
+	dst := &bytes.Buffer{}
+	var n uint64
+	for uintptr(src.Len()) >= unsafe.Sizeof(n) {
 		binary.Read(src, binary.LittleEndian, &n)
-		binary.Write(&dst, binary.BigEndian, n)
+		binary.Write(dst, binary.BigEndian, n)
 	}
-	for {
-		b, err := src.ReadByte()
-		if err == io.EOF {
-			break
-		}
-		dst.WriteByte(b)
-	}
+	io.Copy(dst, src)
 	return dst.Bytes(), nil
 }
