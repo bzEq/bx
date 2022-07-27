@@ -141,22 +141,25 @@ func (self *Padding) RunOnBytes(p []byte) ([]byte, error) {
 	for i := uint16(0); i < n; i++ {
 		buf.WriteByte(byte((i * s) % m))
 	}
-	_, err := buf.Write(p)
-	return buf.Bytes(), err
+	byteSwap(buf, bytes.NewBuffer(p))
+	return buf.Bytes(), nil
 }
 
 type DePadding struct{}
 
 func (self *DePadding) RunOnBytes(p []byte) ([]byte, error) {
-	buf := bytes.NewBuffer(p)
+	src := bytes.NewBuffer(p)
+	dst := new(bytes.Buffer)
 	var n uint16
-	if err := binary.Read(buf, binary.BigEndian, &n); err != nil {
-		return buf.Bytes(), err
+	if err := binary.Read(src, binary.BigEndian, &n); err != nil {
+		return dst.Bytes(), err
 	}
-	if buf.Len() < int(n) {
-		return buf.Bytes(), errors.New("Inconsistent buffer length")
+	if src.Len() < int(n) {
+		return dst.Bytes(), errors.New("Inconsistent buffer length")
 	}
-	return buf.Bytes()[n:], nil
+	src.Next(int(n))
+	byteSwap(dst, src)
+	return dst.Bytes(), nil
 }
 
 type RotateLeft struct{}
@@ -233,16 +236,20 @@ func (self *Reverse) RunOnBytes(src []byte) (dst []byte, err error) {
 	return
 }
 
-type ByteSwap struct{}
-
-func (self *ByteSwap) RunOnBytes(p []byte) ([]byte, error) {
-	src := bytes.NewBuffer(p)
-	dst := &bytes.Buffer{}
+func byteSwap(dst, src *bytes.Buffer) {
 	var n uint64
 	for uintptr(src.Len()) >= unsafe.Sizeof(n) {
 		binary.Read(src, binary.LittleEndian, &n)
 		binary.Write(dst, binary.BigEndian, n)
 	}
-	io.Copy(dst, src)
+	dst.Write(src.Bytes())
+}
+
+type ByteSwap struct{}
+
+func (self *ByteSwap) RunOnBytes(p []byte) ([]byte, error) {
+	src := bytes.NewBuffer(p)
+	dst := &bytes.Buffer{}
+	byteSwap(dst, src)
 	return dst.Bytes(), nil
 }
