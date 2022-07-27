@@ -100,7 +100,7 @@ func (self *RC4Enc) RunOnBytes(p []byte) ([]byte, error) {
 		return buf.Bytes(), err
 	}
 	hl := buf.Len()
-	_, err = io.Copy(buf, bytes.NewReader(p))
+	_, err = buf.Write(p)
 	if err != nil {
 		return buf.Bytes(), err
 	}
