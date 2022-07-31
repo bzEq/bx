@@ -18,7 +18,7 @@ type Route struct {
 	Err chan error
 }
 
-// A 1:N router.
+// An 1:N router.
 type SimpleRouter struct {
 	One Port
 	N   Mux
@@ -28,7 +28,7 @@ type SimpleRouter struct {
 func (self *SimpleRouter) NewRoute(id uint64, P Port) (*Route, error) {
 	r := &Route{P: P, Err: make(chan error)}
 	if v, in := self.r.LoadOrStore(id, r); in {
-		return v.(*Route), fmt.Errorf("Route #%d exists", id)
+		return v.(*Route), fmt.Errorf("Route #%d already exists", id)
 	}
 	go func() {
 		// log.Printf("Running route #%d\n", id)
