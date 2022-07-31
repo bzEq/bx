@@ -32,16 +32,6 @@ func (self *CopyPass) RunOnBytes(p []byte) ([]byte, error) {
 	return c, nil
 }
 
-type RC4Pass struct {
-	C *rc4.Cipher
-}
-
-func (self *RC4Pass) RunOnBytes(p []byte) ([]byte, error) {
-	result := make([]byte, len(p))
-	self.C.XORKeyStream(result, p)
-	return result, nil
-}
-
 type Base64Enc struct{}
 
 func (self *Base64Enc) RunOnBytes(p []byte) ([]byte, error) {
