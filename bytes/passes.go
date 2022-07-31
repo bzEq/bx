@@ -128,17 +128,17 @@ func (self *RC4Dec) RunOnBytes(p []byte) ([]byte, error) {
 type Padding struct{}
 
 func (self *Padding) RunOnBytes(p []byte) ([]byte, error) {
-	const NUM_RANDOM_BYTES = uint16(16)
+	const NUM_RANDOM_BYTES = uint8(64)
 	buf := new(bytes.Buffer)
-	var n uint16
-	s := uint16(rand.Uint64())
-	n = s % NUM_RANDOM_BYTES
+	var n uint8
+	s := rand.Uint64()
+	n = uint8(s % uint64(NUM_RANDOM_BYTES))
 	binary.Write(buf, binary.BigEndian, n)
-	m := uint16(rand.Uint64())
+	m := rand.Uint64()
 	if m == 0 {
-		m = ^uint16(0)
+		m = ^uint64(0)
 	}
-	for i := uint16(0); i < n; i++ {
+	for i := uint64(0); i < uint64(n); i++ {
 		buf.WriteByte(byte((i * s) % m))
 	}
 	byteSwap(buf, bytes.NewBuffer(p))
@@ -150,7 +150,7 @@ type DePadding struct{}
 func (self *DePadding) RunOnBytes(p []byte) ([]byte, error) {
 	src := bytes.NewBuffer(p)
 	dst := new(bytes.Buffer)
-	var n uint16
+	var n uint8
 	if err := binary.Read(src, binary.BigEndian, &n); err != nil {
 		return dst.Bytes(), err
 	}
