@@ -95,13 +95,13 @@ func NewPort(c net.Conn, p Protocol) Port {
 	return NewPortWithTimeout(c, p, DEFAULT_TIMEOUT)
 }
 
-func NewSyncPort(c net.Conn, p Protocol) Port {
+func NewSyncPort(c net.Conn, p Protocol) *SyncPort {
 	return &SyncPort{
 		Port: NewPort(c, p),
 	}
 }
 
-func NewSyncPortWithTimeout(c net.Conn, p Protocol, timeout int) Port {
+func NewSyncPortWithTimeout(c net.Conn, p Protocol, timeout int) *SyncPort {
 	return &SyncPort{
 		Port: NewPortWithTimeout(c, p, timeout),
 	}
