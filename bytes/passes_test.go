@@ -3,6 +3,7 @@
 package bytes
 
 import (
+	"bytes"
 	core "github.com/bzEq/bx/core"
 	"testing"
 )
@@ -27,6 +28,23 @@ func TestLZ4Compress(t *testing.T) {
 	if string(r) != "wtfwtfwtfwtf" || err != nil {
 		t.Log(err)
 		t.Log(r)
+		t.Fail()
+	}
+}
+
+func TestLZ4CompressionRatio(t *testing.T) {
+	buffer := new(bytes.Buffer)
+	for i := 0; i < (1 << 20); i++ {
+		buffer.WriteByte(byte(i))
+	}
+	p := &LZ4Compressor{}
+	res, err := p.RunOnBytes(buffer.Bytes())
+	if err != nil {
+		t.Log(err)
+		t.Fail()
+	}
+	if len(res) != 4402 {
+		t.Log(len(res))
 		t.Fail()
 	}
 }
