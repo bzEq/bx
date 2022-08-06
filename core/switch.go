@@ -14,8 +14,14 @@ type SimpleProtocolSwitch struct {
 }
 
 func (self *SimpleProtocolSwitch) Run() {
-	go self.transfer(self.red, self.blue, self.doneRB)
-	go self.transfer(self.blue, self.red, self.doneBR)
+	go func() {
+		defer close(self.doneRB)
+		self.transfer(self.red, self.blue)
+	}()
+	go func() {
+		defer close(self.doneBR)
+		self.transfer(self.blue, self.red)
+	}()
 	// If error occurs in one direction, we exit the swith immediately,
 	// so that outer function could close both connections fast.
 	select {
@@ -25,16 +31,14 @@ func (self *SimpleProtocolSwitch) Run() {
 	}
 }
 
-func (self *SimpleProtocolSwitch) transfer(in, out Port, done chan struct{}) {
-	defer close(done)
+func (self *SimpleProtocolSwitch) transfer(in, out Port) {
 	for {
 		buf, err := in.Unpack()
 		if err != nil {
 			log.Println(err)
 			return
 		}
-		err = out.Pack(buf)
-		if err != nil {
+		if err = out.Pack(buf); err != nil {
 			log.Println(err)
 			return
 		}
