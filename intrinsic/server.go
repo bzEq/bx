@@ -100,28 +100,38 @@ func (self *Server) relayUDP() error {
 	}
 }
 
-func (self *Server) Run() error {
+func (self *Server) Run() {
 	pack, err := self.P.Unpack()
 	if err != nil {
-		return err
+		log.Println(err)
+		return
 	}
 	buf := bytes.NewBuffer(pack)
 	dec := gob.NewDecoder(buf)
 	var i Intrinsic
 	if err := dec.Decode(&i); err != nil {
-		return err
+		log.Println(err)
+		return
 	}
 	switch i.Func {
 	case RELAY_UDP:
-		return self.relayUDP()
+		if err := self.relayUDP(); err != nil {
+			log.Println(err)
+			return
+		}
 	case RELAY_TCP:
 		var req TCPRequest
 		dec := gob.NewDecoder(bytes.NewBuffer(i.Data))
 		if err := dec.Decode(&req); err != nil {
-			return err
+			log.Println(err)
+			return
 		}
-		return self.relayTCP(req.Addr)
+		if err := self.relayTCP(req.Addr); err != nil {
+			log.Println(err)
+			return
+		}
 	default:
-		return fmt.Errorf("Unsupported function: %d", i.Func)
+		log.Println(fmt.Errorf("Unsupported function: %d", i.Func))
+		return
 	}
 }

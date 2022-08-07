@@ -8,6 +8,10 @@ import (
 	"sync"
 )
 
+type Runnable interface {
+	Run()
+}
+
 type Mux interface {
 	Forward(uint64, []byte) ([]byte, error)
 	Dispatch([]byte) (uint64, []byte, error)
