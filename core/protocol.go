@@ -124,10 +124,11 @@ func (self *VariantProtocol) Unpack(in *bufio.Reader) ([]byte, error) {
 type HTTPProtocol struct{}
 
 func (self *HTTPProtocol) Pack(buf []byte, out *bufio.Writer) error {
-	req, err := http.NewRequest("GET", "/", bytes.NewReader(buf))
+	req, err := http.NewRequest("POST", "/", bytes.NewReader(buf))
 	if err != nil {
 		return err
 	}
+	req.Header.Set("User-Agent", "Mozilla/5.0")
 	return req.Write(out)
 }
 
