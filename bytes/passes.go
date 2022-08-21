@@ -9,7 +9,6 @@ import (
 	"crypto/rc4"
 	"encoding/base64"
 	"encoding/binary"
-	"errors"
 	"io"
 	"io/ioutil"
 	"math/rand"
@@ -115,41 +114,20 @@ func (self *RC4Dec) RunOnBytes(p []byte) ([]byte, error) {
 	return buf.Bytes(), err
 }
 
-type Padding struct{}
-
-func (self *Padding) RunOnBytes(p []byte) ([]byte, error) {
-	const NUM_RANDOM_BYTES = uint8(64)
-	buf := new(bytes.Buffer)
-	var n uint8
-	s := rand.Uint64()
-	n = uint8(s % uint64(NUM_RANDOM_BYTES))
-	binary.Write(buf, binary.BigEndian, n)
-	m := rand.Uint64()
-	if m == 0 {
-		m = ^uint64(0)
-	}
-	for i := uint64(0); i < uint64(n); i++ {
-		buf.WriteByte(byte((i * s) % m))
-	}
-	byteSwap(buf, bytes.NewBuffer(p))
-	return buf.Bytes(), nil
+type OBFSEncoder struct {
+	SimpleOBFS
 }
 
-type DePadding struct{}
+func (self *OBFSEncoder) RunOnBytes(p []byte) ([]byte, error) {
+	return self.SimpleOBFS.Encode(p)
+}
 
-func (self *DePadding) RunOnBytes(p []byte) ([]byte, error) {
-	src := bytes.NewBuffer(p)
-	dst := new(bytes.Buffer)
-	var n uint8
-	if err := binary.Read(src, binary.BigEndian, &n); err != nil {
-		return dst.Bytes(), err
-	}
-	if src.Len() < int(n) {
-		return dst.Bytes(), errors.New("Inconsistent buffer length")
-	}
-	src.Next(int(n))
-	byteSwap(dst, src)
-	return dst.Bytes(), nil
+type OBFSDecoder struct {
+	SimpleOBFS
+}
+
+func (self *OBFSDecoder) RunOnBytes(p []byte) ([]byte, error) {
+	return self.SimpleOBFS.Decode(p)
 }
 
 type RotateLeft struct{}
