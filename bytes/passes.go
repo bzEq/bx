@@ -194,15 +194,15 @@ func (self *LZ4Decompressor) RunOnBytes(p []byte) ([]byte, error) {
 	return out, nil
 }
 
-type SnappyEncoder struct{}
+type SnappyCompressor struct{}
 
-func (self *SnappyEncoder) RunOnBytes(src []byte) ([]byte, error) {
+func (self *SnappyCompressor) RunOnBytes(src []byte) ([]byte, error) {
 	return snappy.Encode(nil, src), nil
 }
 
-type SnappyDecoder struct{}
+type SnappyDecompressor struct{}
 
-func (self *SnappyDecoder) RunOnBytes(src []byte) ([]byte, error) {
+func (self *SnappyDecompressor) RunOnBytes(src []byte) ([]byte, error) {
 	return snappy.Decode(nil, src)
 }
 
