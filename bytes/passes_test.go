@@ -32,6 +32,18 @@ func TestLZ4Compress(t *testing.T) {
 	}
 }
 
+func TestSnappyCompress(t *testing.T) {
+	pm := core.NewPassManager()
+	pm.AddPass(&SnappyEncoder{})
+	pm.AddPass(&SnappyDecoder{})
+	r, err := pm.RunOnBytes([]byte("wtfwtfwtfwtf"))
+	if string(r) != "wtfwtfwtfwtf" || err != nil {
+		t.Log(err)
+		t.Log(r)
+		t.Fail()
+	}
+}
+
 func TestLZ4CompressionRatio(t *testing.T) {
 	buffer := new(bytes.Buffer)
 	for i := 0; i < (1 << 20); i++ {

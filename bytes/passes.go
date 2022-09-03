@@ -15,6 +15,7 @@ import (
 	"unsafe"
 
 	lz4 "github.com/bzEq/bx/third_party/lz4v3"
+	snappy "github.com/bzEq/bx/third_party/snappy"
 )
 
 type DummyPass struct{}
@@ -220,4 +221,16 @@ func (self *ByteSwap) RunOnBytes(p []byte) ([]byte, error) {
 	dst := &bytes.Buffer{}
 	byteSwap(dst, src)
 	return dst.Bytes(), nil
+}
+
+type SnappyEncoder struct{}
+
+func (self *SnappyEncoder) RunOnBytes(src []byte) ([]byte, error) {
+	return snappy.Encode(nil, src), nil
+}
+
+type SnappyDecoder struct{}
+
+func (self *SnappyDecoder) RunOnBytes(src []byte) ([]byte, error) {
+	return snappy.Decode(nil, src)
 }
