@@ -15,7 +15,6 @@ import (
 	"unsafe"
 
 	lz4 "github.com/bzEq/bx/third_party/lz4v3"
-	snappy "github.com/bzEq/bx/third_party/snappy"
 )
 
 type DummyPass struct{}
@@ -192,18 +191,6 @@ func (self *LZ4Decompressor) RunOnBytes(p []byte) ([]byte, error) {
 		return out, err
 	}
 	return out, nil
-}
-
-type SnappyCompressor struct{}
-
-func (self *SnappyCompressor) RunOnBytes(src []byte) ([]byte, error) {
-	return snappy.Encode(nil, src), nil
-}
-
-type SnappyDecompressor struct{}
-
-func (self *SnappyDecompressor) RunOnBytes(src []byte) ([]byte, error) {
-	return snappy.Decode(nil, src)
 }
 
 type Reverse struct{}
