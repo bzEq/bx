@@ -3,10 +3,10 @@
 
 extern "C" {
 
-void ByteSwap(void *__restrict__ dst, void *__restrict__ src, size_t len) {
+void ByteSwap(void *__restrict__ dst, const void *__restrict__ src, size_t len) {
   static const size_t n = sizeof(uint64_t);
   uint64_t *__restrict__ d = (uint64_t *)dst;
-  uint64_t *__restrict__ s = (uint64_t *)src;
+  const uint64_t *__restrict__ s = (uint64_t *)src;
   size_t m = len / n;
 #pragma clang loop unroll(enable)
   for (size_t i = 0; i < m; ++i)

@@ -17,6 +17,7 @@ import (
 	"io"
 	"io/ioutil"
 	"math/rand"
+	"unsafe"
 
 	lz4 "github.com/bzEq/bx/third_party/lz4v3"
 	snappy "github.com/bzEq/bx/third_party/snappy"
@@ -211,12 +212,14 @@ func (self *Reverse) RunOnBytes(src []byte) (dst []byte, err error) {
 
 func byteSwap(dst, src *bytes.Buffer) {
 	l := C.size_t(src.Len())
-	srcPtr := C.CBytes(src.Bytes())
-	defer C.free(srcPtr)
-	dstPtr := C.malloc(l)
-	defer C.free(dstPtr)
+	if l == 0 {
+		return
+	}
+	srcPtr := unsafe.Pointer(&src.Bytes()[0])
+	buf := make([]byte, l)
+	dstPtr := unsafe.Pointer(&buf[0])
 	C.ByteSwap(dstPtr, srcPtr, l)
-	dst.Write(C.GoBytes(dstPtr, C.int(l)))
+	dst.Write(buf)
 }
 
 type ByteSwap struct{}
