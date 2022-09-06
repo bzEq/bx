@@ -11,7 +11,7 @@ void ByteSwap(void *__restrict__ dst, void *__restrict__ src, size_t len) {
 #pragma clang loop unroll(enable)
   for (size_t i = 0; i < m; ++i)
     d[i] = __builtin_bswap64(s[i]);
-
+#pragma clang loop vectorize(enable)
   for (size_t i = m * n; i < len; ++i)
     *((char *)dst + i) = *((char *)src + i);
 }
