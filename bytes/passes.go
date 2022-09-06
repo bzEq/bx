@@ -2,7 +2,7 @@
 
 package bytes
 
-// #cgo CXXFLAGS: -O3 -mcpu=native
+// #cgo CXXFLAGS: -O3 -mcpu=native -ffreestanding
 // #include "bytes.h"
 // #include <stdlib.h>
 import "C"
