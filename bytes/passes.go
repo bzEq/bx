@@ -2,6 +2,11 @@
 
 package bytes
 
+// #cgo CXXFLAGS: -O3 -march=native
+// #include "bytes.h"
+// #include <stdlib.h>
+import "C"
+
 import (
 	"bytes"
 	"compress/flate"
@@ -12,7 +17,6 @@ import (
 	"io"
 	"io/ioutil"
 	"math/rand"
-	"unsafe"
 
 	lz4 "github.com/bzEq/bx/third_party/lz4v3"
 	snappy "github.com/bzEq/bx/third_party/snappy"
@@ -206,12 +210,12 @@ func (self *Reverse) RunOnBytes(src []byte) (dst []byte, err error) {
 }
 
 func byteSwap(dst, src *bytes.Buffer) {
-	var n uint64
-	for uintptr(src.Len()) >= unsafe.Sizeof(n) {
-		binary.Read(src, binary.LittleEndian, &n)
-		binary.Write(dst, binary.BigEndian, n)
-	}
-	dst.Write(src.Bytes())
+	l := C.size_t(src.Len())
+	srcPtr := C.CBytes(src.Bytes())
+	defer C.free(srcPtr)
+	dstPtr := C.ByteSwap(srcPtr, l)
+	defer C.free(dstPtr)
+	dst.Write(C.GoBytes(dstPtr, C.int(l)))
 }
 
 type ByteSwap struct{}
