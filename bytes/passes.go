@@ -213,8 +213,9 @@ func byteSwap(dst, src *bytes.Buffer) {
 	l := C.size_t(src.Len())
 	srcPtr := C.CBytes(src.Bytes())
 	defer C.free(srcPtr)
-	dstPtr := C.ByteSwap(srcPtr, l)
+	dstPtr := C.malloc(l)
 	defer C.free(dstPtr)
+	C.ByteSwap(dstPtr, srcPtr, l)
 	dst.Write(C.GoBytes(dstPtr, C.int(l)))
 }
 

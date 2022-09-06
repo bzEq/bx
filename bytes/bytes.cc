@@ -1,13 +1,10 @@
 #include <stddef.h>
 #include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
 
 extern "C" {
 
-void *ByteSwap(void *__restrict__ src, size_t len) {
+void ByteSwap(void *__restrict__ dst, void *__restrict__ src, size_t len) {
   static const size_t n = sizeof(uint64_t);
-  void *__restrict__ dst = malloc(len);
   uint64_t *__restrict__ d = (uint64_t *)dst;
   uint64_t *__restrict__ s = (uint64_t *)src;
   size_t m = len / n;
@@ -17,7 +14,5 @@ void *ByteSwap(void *__restrict__ src, size_t len) {
 #pragma clang loop vectorize(enable)
   for (size_t i = m * n; i < len; ++i)
     *((char *)dst + i) = *((char *)src + i);
-  return dst;
 }
-
 }
