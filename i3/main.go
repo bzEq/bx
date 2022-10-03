@@ -87,7 +87,7 @@ func main() {
 	var debug bool
 	flag.StringVar(&options.Local, "l", "localhost:1080", "Listen address of this relayer")
 	flag.StringVar(&options.Next, "n", "", "Address of next-hop relayer")
-	flag.StringVar(&options.LocalHTTPProxy, "enable_http_proxy", "", "Enable this relayer serving as http proxy")
+	flag.StringVar(&options.LocalHTTPProxy, "http_proxy", "", "Enable this relayer serving as http proxy")
 	flag.StringVar(&options.ProtocolName, "proto", "", "Name of relay protocol")
 	flag.BoolVar(&options.UseTLS, "use_tls", false, "Use TLS")
 	flag.IntVar(&options.NumConn, "j", 4, "Number of connections for UDP Mux")
