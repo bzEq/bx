@@ -12,16 +12,15 @@ type SimpleOBFS struct{}
 func (self *SimpleOBFS) Encode(p []byte) ([]byte, error) {
 	const NUM_RANDOM_BYTES = uint8(64)
 	buf := new(bytes.Buffer)
+	var n uint8
 	s := rand.Uint64()
-	n := s % uint64(NUM_RANDOM_BYTES)
-	l := uint64(len(p))
-	n = (l+n+7)&(^uint64(7)) - l
-	binary.Write(buf, binary.BigEndian, uint8(n))
+	n = uint8(s % uint64(NUM_RANDOM_BYTES))
+	binary.Write(buf, binary.BigEndian, n)
 	m := rand.Uint64()
 	if m == 0 {
 		m = ^uint64(0)
 	}
-	for i := uint64(0); i < n; i++ {
+	for i := uint64(0); i < uint64(n); i++ {
 		buf.WriteByte(byte((i * s) % m))
 	}
 	byteSwap(buf, bytes.NewBuffer(p))
