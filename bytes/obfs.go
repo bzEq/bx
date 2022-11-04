@@ -23,7 +23,13 @@ func (self *SimpleOBFS) Encode(p []byte) ([]byte, error) {
 	for i := uint64(0); i < uint64(n); i++ {
 		buf.WriteByte(byte((i * s) % m))
 	}
-	byteSwap(buf, bytes.NewBuffer(p))
+	l := len(p)
+	w := buf.Len()
+	buf.Grow(w + l)
+	for i := 0; i < l; i++ {
+		buf.WriteByte(0)
+	}
+	byteSwap(buf.Bytes()[w:], p)
 	return buf.Bytes(), nil
 }
 
@@ -38,6 +44,12 @@ func (self *SimpleOBFS) Decode(p []byte) ([]byte, error) {
 		return dst.Bytes(), fmt.Errorf("Inconsistent buffer length")
 	}
 	src.Next(int(n))
-	byteSwap(dst, src)
+	l := src.Len()
+	w := dst.Len()
+	dst.Grow(w + l)
+	for i := 0; i < l; i++ {
+		dst.WriteByte(0)
+	}
+	byteSwap(dst.Bytes()[w:], src.Bytes())
 	return dst.Bytes(), nil
 }
