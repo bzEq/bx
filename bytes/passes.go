@@ -210,23 +210,25 @@ func (self *Reverse) RunOnBytes(src []byte) (dst []byte, err error) {
 	return
 }
 
-func byteSwap(dst, src []byte) {
-	sl := len(src)
-	dl := len(dst)
-	if sl == 0 || sl != dl {
+func byteSwap(dst, src *bytes.Buffer) {
+	l := C.size_t(src.Len())
+	if l == 0 {
 		return
 	}
-	srcPtr := unsafe.Pointer(&src[0])
-	dstPtr := unsafe.Pointer(&dst[0])
-	C.ByteSwap(dstPtr, srcPtr, C.size_t(sl))
+	srcPtr := unsafe.Pointer(&src.Bytes()[0])
+	buf := make([]byte, l)
+	dstPtr := unsafe.Pointer(&buf[0])
+	C.ByteSwap(dstPtr, srcPtr, l)
+	dst.Write(buf)
 }
 
 type ByteSwap struct{}
 
 func (self *ByteSwap) RunOnBytes(p []byte) ([]byte, error) {
-	dst := make([]byte, len(p))
-	byteSwap(dst, p)
-	return dst, nil
+	src := bytes.NewBuffer(p)
+	dst := &bytes.Buffer{}
+	byteSwap(dst, src)
+	return dst.Bytes(), nil
 }
 
 type SnappyEncoder struct{}
