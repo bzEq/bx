@@ -2,11 +2,6 @@
 
 package bytes
 
-// #cgo CXXFLAGS: -O3
-// #include "bytes.h"
-// #include <stdlib.h>
-import "C"
-
 import (
 	"bytes"
 	"compress/flate"
@@ -18,7 +13,6 @@ import (
 	"io"
 	"io/ioutil"
 	"math/rand"
-	"unsafe"
 
 	core "github.com/bzEq/bx/core"
 	lz4 "github.com/bzEq/bx/third_party/lz4v3"
@@ -85,7 +79,7 @@ type Decompressor struct{}
 
 func (self *Decompressor) RunOnBytes(p []byte) ([]byte, error) {
 	if len(p) <= 0 {
-		return p, fmt.Errorf("Missing compressor type field")
+		return nil, fmt.Errorf("Missing compressor type field")
 	}
 	last := len(p) - 1
 	x := int(p[last])
@@ -262,18 +256,6 @@ func (self *Reverse) RunOnBytes(src []byte) (dst []byte, err error) {
 		dst[l-1-i] = src[i]
 	}
 	return
-}
-
-func byteSwap(dst, src *bytes.Buffer) {
-	l := C.size_t(src.Len())
-	if l == 0 {
-		return
-	}
-	srcPtr := unsafe.Pointer(&src.Bytes()[0])
-	buf := make([]byte, l)
-	dstPtr := unsafe.Pointer(&buf[0])
-	C.ByteSwap(dstPtr, srcPtr, l)
-	dst.Write(buf)
 }
 
 type ByteSwap struct{}
