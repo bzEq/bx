@@ -65,7 +65,7 @@ func (self *Compressor) RunOnBytes(p []byte) ([]byte, error) {
 	case COMPRESS_SNAPPY:
 		pass = &SnappyEncoder{}
 	default:
-		panic("Unrecognized compressor")
+		return nil, fmt.Errorf("Unrecognized compressor")
 	}
 	result, err := pass.RunOnBytes(p)
 	if err != nil {
