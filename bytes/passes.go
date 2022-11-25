@@ -14,11 +14,13 @@ import (
 	"crypto/rc4"
 	"encoding/base64"
 	"encoding/binary"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"math/rand"
 	"unsafe"
 
+	core "github.com/bzEq/bx/core"
 	lz4 "github.com/bzEq/bx/third_party/lz4v3"
 	snappy "github.com/bzEq/bx/third_party/snappy"
 )
@@ -49,9 +51,61 @@ func (self *Base64Dec) RunOnBytes(p []byte) ([]byte, error) {
 	return base64.StdEncoding.DecodeString(string(p))
 }
 
+const (
+	COMPRESS_GZIP = iota
+	COMPRESS_LZ4
+	COMPRESS_SNAPPY
+	NUM_COMPRESSOR
+)
+
 type Compressor struct{}
 
-func (self *Compressor) RunOnBytes(p []byte) (result []byte, err error) {
+func (self *Compressor) RunOnBytes(p []byte) ([]byte, error) {
+	x := int(rand.Uint64() % NUM_COMPRESSOR)
+	var pass core.Pass
+	switch x {
+	case COMPRESS_GZIP:
+		pass = &GZipCompressor{}
+	case COMPRESS_LZ4:
+		pass = &LZ4Compressor{}
+	case COMPRESS_SNAPPY:
+		pass = &SnappyEncoder{}
+	default:
+		panic("Unrecognized compressor")
+	}
+	result, err := pass.RunOnBytes(p)
+	if err != nil {
+		return result, err
+	}
+	result = append(result, byte(x))
+	return result, nil
+}
+
+type Decompressor struct{}
+
+func (self *Decompressor) RunOnBytes(p []byte) ([]byte, error) {
+	if len(p) <= 0 {
+		return p, fmt.Errorf("Missing compressor type field")
+	}
+	last := len(p) - 1
+	x := int(p[last])
+	var pass core.Pass
+	switch x {
+	case COMPRESS_GZIP:
+		pass = &GZipDecompressor{}
+	case COMPRESS_LZ4:
+		pass = &LZ4Decompressor{}
+	case COMPRESS_SNAPPY:
+		pass = &SnappyDecoder{}
+	default:
+		panic("Unrecognized compressor")
+	}
+	return pass.RunOnBytes(p[:last])
+}
+
+type GZipCompressor struct{}
+
+func (self *GZipCompressor) RunOnBytes(p []byte) (result []byte, err error) {
 	var buf bytes.Buffer
 	zw, err := gzip.NewWriterLevel(&buf, flate.BestSpeed)
 	if err != nil {
@@ -65,9 +119,9 @@ func (self *Compressor) RunOnBytes(p []byte) (result []byte, err error) {
 	return
 }
 
-type Decompressor struct{}
+type GZipDecompressor struct{}
 
-func (self *Decompressor) RunOnBytes(p []byte) (result []byte, err error) {
+func (self *GZipDecompressor) RunOnBytes(p []byte) (result []byte, err error) {
 	buf := bytes.NewBuffer(p)
 	zr, err := gzip.NewReader(buf)
 	if err != nil {

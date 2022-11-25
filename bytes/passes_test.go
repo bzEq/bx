@@ -4,9 +4,18 @@ package bytes
 
 import (
 	"bytes"
+	crand "crypto/rand"
+	"encoding/binary"
 	core "github.com/bzEq/bx/core"
+	"math/rand"
 	"testing"
 )
+
+func init() {
+	var seed int64
+	binary.Read(crand.Reader, binary.BigEndian, &seed)
+	rand.Seed(seed)
+}
 
 func TestCompress(t *testing.T) {
 	pm := core.NewPassManager()
@@ -36,6 +45,18 @@ func TestSnappyCompress(t *testing.T) {
 	pm := core.NewPassManager()
 	pm.AddPass(&SnappyEncoder{})
 	pm.AddPass(&SnappyDecoder{})
+	r, err := pm.RunOnBytes([]byte("wtfwtfwtfwtf"))
+	if string(r) != "wtfwtfwtfwtf" || err != nil {
+		t.Log(err)
+		t.Log(r)
+		t.Fail()
+	}
+}
+
+func TestRandCompress(t *testing.T) {
+	pm := core.NewPassManager()
+	pm.AddPass(&Compressor{})
+	pm.AddPass(&Decompressor{})
 	r, err := pm.RunOnBytes([]byte("wtfwtfwtfwtf"))
 	if string(r) != "wtfwtfwtfwtf" || err != nil {
 		t.Log(err)
