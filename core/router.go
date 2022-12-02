@@ -12,9 +12,9 @@ type Runnable interface {
 	Run()
 }
 
-type Mux interface {
-	Forward(uint64, []byte) ([]byte, error)
-	Dispatch([]byte) (uint64, []byte, error)
+type Codec interface {
+	Encode(uint64, []byte) ([]byte, error)
+	Decode([]byte) (uint64, []byte, error)
 }
 
 type Route struct {
@@ -24,9 +24,9 @@ type Route struct {
 
 // An 1:N router.
 type SimpleRouter struct {
-	One *SyncPort
-	N   Mux
-	r   sync.Map
+	P *SyncPort
+	C Codec
+	r sync.Map
 }
 
 func (self *SimpleRouter) runRoute(id uint64, r *Route) {
@@ -37,12 +37,12 @@ func (self *SimpleRouter) runRoute(id uint64, r *Route) {
 			r.Err <- err
 			return
 		}
-		buf, err = self.N.Forward(id, buf)
+		buf, err = self.C.Encode(id, buf)
 		if err != nil {
 			r.Err <- err
 			return
 		}
-		if err = self.One.Pack(buf); err != nil {
+		if err = self.P.Pack(buf); err != nil {
 			r.Err <- err
 			return
 		}
@@ -60,12 +60,12 @@ func (self *SimpleRouter) NewRoute(id uint64, P *SyncPort) (*Route, error) {
 
 func (self *SimpleRouter) Run() {
 	for {
-		buf, err := self.One.Unpack()
+		buf, err := self.P.Unpack()
 		if err != nil {
 			log.Println(err)
 			return
 		}
-		id, buf, err := self.N.Dispatch(buf)
+		id, buf, err := self.C.Decode(buf)
 		if err != nil {
 			log.Println(err)
 			continue

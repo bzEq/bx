@@ -56,7 +56,7 @@ func (self *ClientContext) dialUDP(network, addr string) (net.Conn, error) {
 			log.Println(err)
 			return
 		}
-		mux := router.N.(*UDPDispatcher)
+		mux := router.C.(*UDPDispatcher)
 		id := mux.NewId(addr)
 		defer mux.FreeId(id)
 		cp := core.NewSyncPortWithTimeout(c, nil, core.DEFAULT_UDP_TIMEOUT)
@@ -116,8 +116,8 @@ func (self *ClientContext) getRouter() (*core.SimpleRouter, error) {
 				return
 			}
 			router := &core.SimpleRouter{
-				One: core.NewSyncPort(c, self.GetProtocol()),
-				N:   &UDPDispatcher{},
+				P: core.NewSyncPort(c, self.GetProtocol()),
+				C: &UDPDispatcher{},
 			}
 			self.routers.Store(router, true)
 			// Prepare UDP proxy.
@@ -129,7 +129,7 @@ func (self *ClientContext) getRouter() (*core.SimpleRouter, error) {
 				log.Println(err)
 				return
 			}
-			if err := router.One.Pack(buf.Bytes()); err != nil {
+			if err := router.P.Pack(buf.Bytes()); err != nil {
 				c.Close()
 				log.Println(err)
 				return
@@ -178,7 +178,7 @@ func (self *UDPDispatcher) FreeId(id uint64) {
 	self.r.Delete(id)
 }
 
-func (self *UDPDispatcher) Forward(id uint64, data []byte) ([]byte, error) {
+func (self *UDPDispatcher) Encode(id uint64, data []byte) ([]byte, error) {
 	v, in := self.r.Load(id)
 	if !in {
 		return data, fmt.Errorf("Remote address of #%d doesn't exist", id)
@@ -193,7 +193,7 @@ func (self *UDPDispatcher) Forward(id uint64, data []byte) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (self *UDPDispatcher) Dispatch(data []byte) (uint64, []byte, error) {
+func (self *UDPDispatcher) Decode(data []byte) (uint64, []byte, error) {
 	dec := gob.NewDecoder(bytes.NewBuffer(data))
 	var msg UDPMessage
 	if err := dec.Decode(&msg); err != nil {
