@@ -76,7 +76,7 @@ func TestLZ4CompressionRatio(t *testing.T) {
 		t.Log(err)
 		t.Fail()
 	}
-	if len(res) != 4402 {
+	if len(res) != 4400 {
 		t.Log(len(res))
 		t.Fail()
 	}
