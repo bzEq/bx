@@ -49,6 +49,7 @@ type RawNetPort struct {
 	C              net.Conn
 	timeout        time.Duration
 	prevActiveSize int
+	buf            []byte
 }
 
 func (self *RawNetPort) Pack(data []byte) error {
@@ -74,16 +75,21 @@ func (self *RawNetPort) computeAllocSize() int {
 }
 
 func (self *RawNetPort) Unpack() ([]byte, error) {
+	n := self.computeAllocSize()
+	if len(self.buf) < n {
+		self.buf = make([]byte, n)
+	}
 	if err := self.C.SetReadDeadline(time.Now().Add(self.timeout)); err != nil {
 		return nil, err
 	}
-	buf := make([]byte, self.computeAllocSize())
-	nr, err := self.C.Read(buf)
+	nr, err := self.C.Read(self.buf)
 	if err != nil {
 		return nil, err
 	}
 	self.prevActiveSize = nr
-	return buf[:nr], nil
+	res := self.buf[:nr]
+	self.buf = self.buf[nr:]
+	return res, nil
 }
 
 type SyncPort struct {
