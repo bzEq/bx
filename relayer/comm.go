@@ -3,14 +3,14 @@
 package relayer
 
 import (
-	bytes "github.com/bzEq/bx/bytes"
 	core "github.com/bzEq/bx/core"
+	passes "github.com/bzEq/bx/passes"
 )
 
 func createPackUnpackPassManagerBuilder() *core.PackUnpackPassManagerBuilder {
 	pmb := core.NewPackUnpackPassManagerBuilder()
-	pmb.AddPairedPasses(&bytes.Compressor{}, &bytes.Decompressor{})
-	pmb.AddPairedPasses(&bytes.OBFSEncoder{}, &bytes.OBFSDecoder{})
+	pmb.AddPairedPasses(&passes.Compressor{}, &passes.Decompressor{})
+	pmb.AddPairedPasses(&passes.OBFSEncoder{}, &passes.OBFSDecoder{})
 	return pmb
 }
 
