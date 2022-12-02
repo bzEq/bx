@@ -60,7 +60,7 @@ func (self *RawNetPort) Pack(data []byte) error {
 	return err
 }
 
-const allocFactor = 1
+const allocFactor = 3
 
 // Use allocation strategy described in https://arxiv.org/abs/2204.10455.
 func (self *RawNetPort) computeAllocSize() int {
