@@ -29,7 +29,7 @@ type SimpleRouter struct {
 	r sync.Map
 }
 
-func (self *SimpleRouter) runRoute(id uint64, r *Route) {
+func (self *SimpleRouter) route(id uint64, r *Route) {
 	defer self.r.Delete(id)
 	for {
 		buf, err := r.P.Unpack()
@@ -54,7 +54,7 @@ func (self *SimpleRouter) NewRoute(id uint64, P *SyncPort) (*Route, error) {
 	if v, in := self.r.LoadOrStore(id, r); in {
 		return v.(*Route), fmt.Errorf("Route #%d already exists", id)
 	}
-	go self.runRoute(id, r)
+	go self.route(id, r)
 	return r, nil
 }
 
