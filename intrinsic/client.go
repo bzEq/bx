@@ -51,7 +51,7 @@ func (self *ClientContext) dialUDP(network, addr string) (net.Conn, error) {
 	c := local[1]
 	go func() {
 		defer c.Close()
-		router, err := self.getRouter()
+		router, err := self.getOrCreateRouter()
 		if err != nil {
 			log.Println(err)
 			return
@@ -103,7 +103,7 @@ func (self *ClientContext) dialTCP(network, addr string) (net.Conn, error) {
 	return local[0], nil
 }
 
-func (self *ClientContext) getRouter() (*core.SimpleRouter, error) {
+func (self *ClientContext) getOrCreateRouter() (*core.SimpleRouter, error) {
 	n := core.SyncMapSize(&self.routers)
 	var wg sync.WaitGroup
 	for i := n; i < self.Limit; i++ {
