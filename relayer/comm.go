@@ -14,7 +14,7 @@ func createPackUnpackPassManagerBuilder() *core.PackUnpackPassManagerBuilder {
 	return pmb
 }
 
-func createProtocol(name string) core.Protocol {
+func CreateProtocol(name string) core.Protocol {
 	pmb := createPackUnpackPassManagerBuilder()
 	switch name {
 	case "raw":
@@ -38,5 +38,3 @@ func createProtocol(name string) core.Protocol {
 		}
 	}
 }
-
-func CreateProtocol(name string) core.Protocol { return createProtocol(name) }
