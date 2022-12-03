@@ -262,10 +262,9 @@ func (self *Reverse) RunOnBytes(src []byte) (dst []byte, err error) {
 type ByteSwap struct{}
 
 func (self *ByteSwap) RunOnBytes(p []byte) ([]byte, error) {
-	src := bytes.NewBuffer(p)
-	dst := &bytes.Buffer{}
-	byteSwap(dst, src)
-	return dst.Bytes(), nil
+	dst := make([]byte, len(p))
+	byteSwap(dst, p)
+	return dst, nil
 }
 
 type SnappyEncoder struct{}
