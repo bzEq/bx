@@ -53,7 +53,8 @@ func (self *SimpleOBFS) Decode(p []byte) ([]byte, error) {
 	if l <= n {
 		return nil, fmt.Errorf("Inconsistent buffer length")
 	}
-	dst := make([]byte, l-1-n)
-	byteSwap(dst, p[:len(dst)])
+	l = l - 1 - n
+	dst := make([]byte, l)
+	byteSwap(dst, p[:l])
 	return dst, nil
 }
