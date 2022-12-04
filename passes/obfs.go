@@ -1,4 +1,4 @@
-package bytes
+package passes
 
 // #cgo CXXFLAGS: -O3
 // #include "bytes.h"
