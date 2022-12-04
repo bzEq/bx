@@ -3,13 +3,17 @@
 package relayer
 
 import (
+	"compress/flate"
 	core "github.com/bzEq/bx/core"
 	passes "github.com/bzEq/bx/passes"
 )
 
 func createPackUnpackPassManagerBuilder() *core.PackUnpackPassManagerBuilder {
 	pmb := core.NewPackUnpackPassManagerBuilder()
-	pmb.AddPairedPasses(&passes.RandCompressor{}, &passes.RandDecompressor{})
+	// For the compression pipeline,
+	// see https://cs.opensource.google/go/go/+/refs/tags/go1.19.3:src/compress/flate/deflate.go;l=14.
+	pmb.AddPairedPasses(&passes.LZ4Compressor{}, &passes.LZ4Decompressor{})
+	pmb.AddPairedPasses(&passes.GZipCompressor{Level: flate.HuffmanOnly}, &passes.GZipDecompressor{})
 	pmb.AddPairedPasses(&passes.OBFSEncoder{}, &passes.OBFSDecoder{})
 	return pmb
 }
