@@ -29,7 +29,7 @@ type IntrinsicRelayer struct {
 
 func (self *IntrinsicRelayer) createClientContext() *intrinsic.ClientContext {
 	context := &intrinsic.ClientContext{
-		GetProtocol:  func() core.Protocol { return CreateProtocol(self.RelayProtocol) },
+		GetProtocol:  func() core.Protocol { return createProtocol(self.RelayProtocol) },
 		Next:         self.Next[rand.Uint64()%uint64(len(self.Next))],
 		Limit:        self.NumUDPMux,
 		InternalDial: self.Dial,
@@ -137,6 +137,6 @@ func (self *IntrinsicRelayer) ServeAsLocalRelayer(c net.Conn) {
 
 func (self *IntrinsicRelayer) ServeAsEndRelayer(c net.Conn) {
 	defer c.Close()
-	cp := core.NewPort(c, CreateProtocol(self.RelayProtocol))
+	cp := core.NewPort(c, createProtocol(self.RelayProtocol))
 	(&intrinsic.Server{cp}).Run()
 }
