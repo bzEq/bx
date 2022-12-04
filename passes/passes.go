@@ -59,7 +59,7 @@ func (self *RandCompressor) RunOnBytes(p []byte) ([]byte, error) {
 	var pass core.Pass
 	switch x {
 	case COMPRESS_GZIP:
-		pass = &GZipCompressor{}
+		pass = &GZipCompressor{Level: flate.BestSpeed}
 	case COMPRESS_LZ4:
 		pass = &LZ4Compressor{}
 	case COMPRESS_SNAPPY:
@@ -97,11 +97,13 @@ func (self *RandDecompressor) RunOnBytes(p []byte) ([]byte, error) {
 	return pass.RunOnBytes(p[:last])
 }
 
-type GZipCompressor struct{}
+type GZipCompressor struct {
+	Level int
+}
 
 func (self *GZipCompressor) RunOnBytes(p []byte) (result []byte, err error) {
 	var buf bytes.Buffer
-	zw, err := gzip.NewWriterLevel(&buf, flate.BestSpeed)
+	zw, err := gzip.NewWriterLevel(&buf, self.Level)
 	if err != nil {
 		return
 	}
