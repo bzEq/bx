@@ -4,7 +4,6 @@ package core
 
 import (
 	"bufio"
-	"math"
 	"net"
 	"sync"
 	"time"
@@ -46,9 +45,9 @@ func (self *NetPort) Pack(data []byte) error {
 }
 
 type RawNetPort struct {
-	C              net.Conn
-	timeout        time.Duration
-	prevActiveSize int
+	C       net.Conn
+	timeout time.Duration
+	buf     []byte
 }
 
 func (self *RawNetPort) Pack(data []byte) error {
@@ -59,28 +58,20 @@ func (self *RawNetPort) Pack(data []byte) error {
 	return err
 }
 
-const allocFactor = 2
-
-// Use allocation strategy described in https://arxiv.org/abs/2204.10455.
-func (self *RawNetPort) computeAllocSize() int {
-	n := self.prevActiveSize + allocFactor*int(math.Sqrt(float64(self.prevActiveSize)))
-	if n < DEFAULT_UDP_BUFFER_SIZE {
-		return DEFAULT_BUFFER_SIZE
-	}
-	return n
-}
-
 func (self *RawNetPort) Unpack() ([]byte, error) {
+	if len(self.buf) < DEFAULT_UDP_BUFFER_SIZE {
+		self.buf = make([]byte, DEFAULT_BUFFER_SIZE)
+	}
 	if err := self.C.SetReadDeadline(time.Now().Add(self.timeout)); err != nil {
 		return nil, err
 	}
-	buf := make([]byte, self.computeAllocSize())
-	nr, err := self.C.Read(buf)
+	nr, err := self.C.Read(self.buf)
 	if err != nil {
 		return nil, err
 	}
-	self.prevActiveSize = nr
-	return buf[:nr], nil
+	data := self.buf[:nr]
+	self.buf = self.buf[nr:]
+	return data, nil
 }
 
 type SyncPort struct {
