@@ -27,10 +27,10 @@ func byteSwap(dst, src []byte) {
 type SimpleOBFS struct{}
 
 func (self *SimpleOBFS) Encode(p []byte) ([]byte, error) {
-	const NUM_RANDOM_BYTES = uint8(64)
+	const NUM_RANDOM_BYTES = uint64(64)
 	l := len(p)
 	s := rand.Uint64()
-	n := int(s % uint64(NUM_RANDOM_BYTES))
+	n := int(s % NUM_RANDOM_BYTES)
 	dst := make([]byte, l+n+1)
 	byteSwap(dst, p)
 	m := rand.Uint64()
