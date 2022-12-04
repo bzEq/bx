@@ -55,8 +55,7 @@ const (
 type Compressor struct{}
 
 func (self *Compressor) RunOnBytes(p []byte) ([]byte, error) {
-	// Do not use GZIP.
-	x := int(rand.Uint64()%(NUM_COMPRESSOR-1)) + 1
+	x := rand.Uint64() % NUM_COMPRESSOR
 	var pass core.Pass
 	switch x {
 	case COMPRESS_GZIP:
