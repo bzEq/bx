@@ -10,9 +10,7 @@ import (
 
 func createPackUnpackPassManagerBuilder() *core.PackUnpackPassManagerBuilder {
 	pmb := core.NewPackUnpackPassManagerBuilder()
-	// For the compression pipeline,
-	// see https://cs.opensource.google/go/go/+/refs/tags/go1.19.3:src/compress/flate/deflate.go;l=14.
-	pmb.AddPairedPasses(&passes.LZ4Compressor{}, &passes.LZ4Decompressor{})
+	// Since most of traffic is of https, it's not profitable to compress encrypted data.
 	pmb.AddPairedPasses(&passes.GZipCompressor{Level: flate.HuffmanOnly}, &passes.GZipDecompressor{})
 	pmb.AddPairedPasses(&passes.OBFSEncoder{}, &passes.OBFSDecoder{})
 	return pmb
