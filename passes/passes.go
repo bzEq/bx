@@ -15,7 +15,7 @@ import (
 	"math/rand"
 
 	core "github.com/bzEq/bx/core"
-	lz4 "github.com/bzEq/bx/third_party/lz4v4"
+	lz4 "github.com/bzEq/bx/third_party/lz4v3"
 	snappy "github.com/bzEq/bx/third_party/snappy"
 )
 
