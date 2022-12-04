@@ -6,12 +6,25 @@ package bytes
 import "C"
 
 import (
+	"bytes"
 	"fmt"
 	"math/rand"
 	"unsafe"
 )
 
-func byteSwap(dst, src []byte) {
+func byteSwap(dst, src *bytes.Buffer) {
+	l := C.size_t(src.Len())
+	if l == 0 {
+		return
+	}
+	srcPtr := unsafe.Pointer(&src.Bytes()[0])
+	buf := make([]byte, l)
+	dstPtr := unsafe.Pointer(&buf[0])
+	C.ByteSwap(dstPtr, srcPtr, l)
+	dst.Write(buf)
+}
+
+func zcByteSwap(dst, src []byte) {
 	l := len(src)
 	if l == 0 {
 		return
@@ -32,7 +45,7 @@ func (self *SimpleOBFS) Encode(p []byte) ([]byte, error) {
 	s := rand.Uint64()
 	n := int(s % uint64(NUM_RANDOM_BYTES))
 	dst := make([]byte, l+n+1)
-	byteSwap(dst, p)
+	zcByteSwap(dst, p)
 	m := rand.Uint64()
 	if m == 0 {
 		m = ^uint64(0)
@@ -54,6 +67,6 @@ func (self *SimpleOBFS) Decode(p []byte) ([]byte, error) {
 		return nil, fmt.Errorf("Inconsistent buffer length")
 	}
 	dst := make([]byte, l-1-n)
-	byteSwap(dst, p[:len(dst)])
+	zcByteSwap(dst, p[:len(dst)])
 	return dst, nil
 }
