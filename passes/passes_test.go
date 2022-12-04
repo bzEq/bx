@@ -4,6 +4,7 @@ package passes
 
 import (
 	"bytes"
+	"compress/flate"
 	crand "crypto/rand"
 	"encoding/binary"
 	core "github.com/bzEq/bx/core"
@@ -77,6 +78,25 @@ func TestLZ4CompressionRatio(t *testing.T) {
 		t.Fail()
 	}
 	if len(res) != 4400 {
+		t.Log(len(res))
+		t.Fail()
+	}
+}
+
+func TestLZWithHuffman4CompressionRatio(t *testing.T) {
+	buffer := new(bytes.Buffer)
+	for i := 0; i < (1 << 20); i++ {
+		buffer.WriteByte(byte(i))
+	}
+	pm := core.NewPassManager()
+	pm.AddPass(&LZ4Compressor{})
+	pm.AddPass(&GZipCompressor{Level: flate.HuffmanOnly})
+	res, err := pm.RunOnBytes(buffer.Bytes())
+	if err != nil {
+		t.Log(err)
+		t.Fail()
+	}
+	if len(res) != 889 {
 		t.Log(len(res))
 		t.Fail()
 	}
