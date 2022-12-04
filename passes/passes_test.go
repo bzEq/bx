@@ -83,7 +83,7 @@ func TestLZ4CompressionRatio(t *testing.T) {
 	}
 }
 
-func TestLZ4WithHuffman4CompressionRatio(t *testing.T) {
+func TestLZ4WithHuffmanCompressionRatio(t *testing.T) {
 	buffer := new(bytes.Buffer)
 	for i := 0; i < (1 << 20); i++ {
 		buffer.WriteByte(byte(i))
