@@ -3,15 +3,12 @@
 package relayer
 
 import (
-	"compress/flate"
-	core "github.com/bzEq/bx/core"
-	passes "github.com/bzEq/bx/passes"
+	"github.com/bzEq/bx/core"
+	"github.com/bzEq/bx/passes"
 )
 
 func createPackUnpackPassManagerBuilder() *core.PackUnpackPassManagerBuilder {
 	pmb := core.NewPackUnpackPassManagerBuilder()
-	// Since most of traffic is of https, it's not profitable to compress encrypted data.
-	pmb.AddPairedPasses(&passes.GZipCompressor{Level: flate.HuffmanOnly}, &passes.GZipDecompressor{})
 	pmb.AddPairedPasses(&passes.OBFSEncoder{}, &passes.OBFSDecoder{})
 	return pmb
 }
