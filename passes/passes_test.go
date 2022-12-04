@@ -19,8 +19,8 @@ func init() {
 
 func TestCompress(t *testing.T) {
 	pm := core.NewPassManager()
-	pm.AddPass(&Compressor{})
-	pm.AddPass(&Decompressor{})
+	pm.AddPass(&RandCompressor{})
+	pm.AddPass(&RandDecompressor{})
 	r, err := pm.RunOnBytes([]byte("wtf"))
 	if string(r) != "wtf" || err != nil {
 		t.Log(err)
@@ -55,8 +55,8 @@ func TestSnappyCompress(t *testing.T) {
 
 func TestRandCompress(t *testing.T) {
 	pm := core.NewPassManager()
-	pm.AddPass(&Compressor{})
-	pm.AddPass(&Decompressor{})
+	pm.AddPass(&RandCompressor{})
+	pm.AddPass(&RandDecompressor{})
 	r, err := pm.RunOnBytes([]byte("wtfwtfwtfwtf"))
 	if string(r) != "wtfwtfwtfwtf" || err != nil {
 		t.Log(err)

@@ -52,9 +52,9 @@ const (
 	NUM_COMPRESSOR
 )
 
-type Compressor struct{}
+type RandCompressor struct{}
 
-func (self *Compressor) RunOnBytes(p []byte) ([]byte, error) {
+func (self *RandCompressor) RunOnBytes(p []byte) ([]byte, error) {
 	x := rand.Uint64() % NUM_COMPRESSOR
 	var pass core.Pass
 	switch x {
@@ -75,9 +75,9 @@ func (self *Compressor) RunOnBytes(p []byte) ([]byte, error) {
 	return result, nil
 }
 
-type Decompressor struct{}
+type RandDecompressor struct{}
 
-func (self *Decompressor) RunOnBytes(p []byte) ([]byte, error) {
+func (self *RandDecompressor) RunOnBytes(p []byte) ([]byte, error) {
 	if len(p) <= 0 {
 		return nil, fmt.Errorf("Missing compressor type field")
 	}

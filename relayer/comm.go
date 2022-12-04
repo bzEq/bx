@@ -9,7 +9,7 @@ import (
 
 func createPackUnpackPassManagerBuilder() *core.PackUnpackPassManagerBuilder {
 	pmb := core.NewPackUnpackPassManagerBuilder()
-	pmb.AddPairedPasses(&passes.Compressor{}, &passes.Decompressor{})
+	pmb.AddPairedPasses(&passes.RandCompressor{}, &passes.RandDecompressor{})
 	pmb.AddPairedPasses(&passes.OBFSEncoder{}, &passes.OBFSDecoder{})
 	return pmb
 }
