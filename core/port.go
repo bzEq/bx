@@ -63,12 +63,9 @@ const allocFactor = 2
 
 // Use allocation strategy described in https://arxiv.org/abs/2204.10455.
 func (self *RawNetPort) computeAllocSize() int {
-	if self.prevActiveSize == 0 {
-		return DEFAULT_BUFFER_SIZE
-	}
 	n := self.prevActiveSize + allocFactor*int(math.Sqrt(float64(self.prevActiveSize)))
 	if n < DEFAULT_UDP_BUFFER_SIZE {
-		return DEFAULT_UDP_BUFFER_SIZE
+		return DEFAULT_BUFFER_SIZE
 	}
 	return n
 }
