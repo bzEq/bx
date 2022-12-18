@@ -16,8 +16,8 @@ import (
 	"strings"
 	"sync"
 
-	core "github.com/bzEq/bx/core"
-	relayer "github.com/bzEq/bx/relayer"
+	"github.com/bzEq/bx/core"
+	"github.com/bzEq/bx/relayer"
 )
 
 var options struct {
