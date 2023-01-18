@@ -8,7 +8,7 @@ import (
 	"net"
 
 	"github.com/bzEq/bx/core"
-	socks "github.com/bzEq/bx/frontend/socks5"
+	"github.com/bzEq/bx/frontend/socks5"
 )
 
 func main() {
@@ -37,7 +37,7 @@ func main() {
 				log.Println(err)
 				continue
 			}
-			s := socks.Server{
+			s := socks5.Server{
 				UDPAddr: ln.LocalAddr().(*net.UDPAddr),
 			}
 			go func() {
@@ -60,7 +60,7 @@ func main() {
 			log.Println(err)
 			return
 		}
-		s := socks.Server{
+		s := socks5.Server{
 			UDPAddr: udpAddr,
 		}
 		go func() {

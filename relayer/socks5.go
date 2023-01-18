@@ -7,8 +7,8 @@ import (
 	"math/rand"
 	"net"
 
-	core "github.com/bzEq/bx/core"
-	socks5 "github.com/bzEq/bx/frontend/socks5"
+	"github.com/bzEq/bx/core"
+	"github.com/bzEq/bx/frontend/socks5"
 )
 
 type SocksRelayer struct {

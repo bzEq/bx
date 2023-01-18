@@ -11,7 +11,7 @@ import (
 
 	"github.com/bzEq/bx/core"
 	hfe "github.com/bzEq/bx/frontend/http"
-	socks "github.com/bzEq/bx/frontend/socks5"
+	"github.com/bzEq/bx/frontend/socks5"
 	"github.com/bzEq/bx/intrinsic"
 )
 
@@ -77,7 +77,7 @@ func (self *IntrinsicRelayer) startLocalUDPServer() error {
 				log.Println(err)
 				continue
 			}
-			s := socks.Server{
+			s := socks5.Server{
 				UDPAddr: self.udpAddr,
 				Dial:    context.Dial,
 			}
@@ -128,7 +128,7 @@ func (self *IntrinsicRelayer) Run() {
 func (self *IntrinsicRelayer) ServeAsLocalRelayer(c net.Conn) {
 	defer c.Close()
 	context := self.createClientContext()
-	s := socks.Server{
+	s := socks5.Server{
 		UDPAddr: self.udpAddr,
 		Dial:    context.Dial,
 	}

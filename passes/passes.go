@@ -14,9 +14,9 @@ import (
 	"io/ioutil"
 	"math/rand"
 
-	core "github.com/bzEq/bx/core"
+	"github.com/bzEq/bx/core"
 	lz4 "github.com/bzEq/bx/third_party/lz4v4"
-	snappy "github.com/bzEq/bx/third_party/snappy"
+	"github.com/bzEq/bx/third_party/snappy"
 )
 
 type DummyPass struct{}

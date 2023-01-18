@@ -6,7 +6,7 @@ import (
 	"net"
 	"net/http"
 
-	core "github.com/bzEq/bx/core"
+	"github.com/bzEq/bx/core"
 )
 
 // See https://www.rfc-editor.org/rfc/rfc9110.html#field.connection

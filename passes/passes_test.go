@@ -7,7 +7,7 @@ import (
 	"compress/flate"
 	crand "crypto/rand"
 	"encoding/binary"
-	core "github.com/bzEq/bx/core"
+	"github.com/bzEq/bx/core"
 	"math/rand"
 	"testing"
 )
