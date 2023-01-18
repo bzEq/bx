@@ -7,7 +7,7 @@ import (
 	"net"
 )
 
-// SimpleProtocolSwitch is not responsible to close red and blue.
+// SimpleProtocolSwitch is not responsible to close red port and blue port.
 type SimpleProtocolSwitch struct {
 	doneRB, doneBR chan struct{}
 	red, blue      Port
