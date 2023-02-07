@@ -9,8 +9,8 @@ import (
 	"time"
 )
 
-const DEFAULT_TIMEOUT = 600
-const DEFAULT_UDP_TIMEOUT = 10
+const DEFAULT_TIMEOUT = 60 * 60
+const DEFAULT_UDP_TIMEOUT = 60
 const DEFAULT_BUFFER_SIZE = 64 << 10
 const DEFAULT_UDP_BUFFER_SIZE = 2 << 10
 
