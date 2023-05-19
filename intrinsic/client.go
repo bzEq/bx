@@ -98,7 +98,7 @@ func (self *ClientContext) dialTCP(network, addr string) (net.Conn, error) {
 		defer local[1].Close()
 		// Connect remote server without further check to be fast.
 		cp.Pack(pack.Bytes())
-		core.NewSimpleProtocolSwitch(cp, core.NewPort(local[1], nil)).Run()
+		core.NewSimpleSwitch(cp, core.NewPort(local[1], nil)).Run()
 	}()
 	return local[0], nil
 }

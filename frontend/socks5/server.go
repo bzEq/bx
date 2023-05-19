@@ -180,7 +180,7 @@ func (self *Server) handleConnect(c net.Conn, req Request) error {
 	}
 	defer remoteConn.Close()
 	<-runBar
-	core.RunSimpleProtocolSwitch(c, remoteConn, nil, nil)
+	core.RunSimpleSwitch(core.NewPort(c, nil), core.NewPort(remoteConn, nil))
 	return nil
 }
 

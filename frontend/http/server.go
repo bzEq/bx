@@ -53,7 +53,7 @@ func (self *HTTPProxy) handleConnect(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	defer remoteConn.Close()
-	core.RunSimpleProtocolSwitch(c, remoteConn, nil, nil)
+	core.RunSimpleSwitch(core.NewPort(c, nil), core.NewPort(remoteConn, nil))
 }
 
 func copyHeader(dst, src http.Header) {

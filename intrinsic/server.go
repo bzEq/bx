@@ -44,7 +44,7 @@ func (self *Server) relayTCP(addr string) error {
 	}
 	defer c.Close()
 	cp := core.NewPort(c, nil)
-	core.NewSimpleProtocolSwitch(cp, self.P).Run()
+	core.NewSimpleSwitch(cp, self.P).Run()
 	return nil
 }
 

@@ -4,16 +4,15 @@ package core
 
 import (
 	"log"
-	"net"
 )
 
-// SimpleProtocolSwitch is not responsible to close ports.
-type SimpleProtocolSwitch struct {
+// SimpleSwitch is not responsible to close ports.
+type SimpleSwitch struct {
 	done [2]chan struct{}
 	port [2]Port
 }
 
-func (self *SimpleProtocolSwitch) Run() {
+func (self *SimpleSwitch) Run() {
 	go func() {
 		defer close(self.done[0])
 		self.switchTraffic(self.port[0], self.port[1])
@@ -31,7 +30,7 @@ func (self *SimpleProtocolSwitch) Run() {
 	}
 }
 
-func (self *SimpleProtocolSwitch) switchTraffic(in, out Port) {
+func (self *SimpleSwitch) switchTraffic(in, out Port) {
 	for {
 		buf, err := in.Unpack()
 		if err != nil {
@@ -45,20 +44,12 @@ func (self *SimpleProtocolSwitch) switchTraffic(in, out Port) {
 	}
 }
 
-func newSimpleProtocolSwitch(c0, c1 net.Conn, proto0, proto1 Protocol) *SimpleProtocolSwitch {
-	s := &SimpleProtocolSwitch{
-		port: [2]Port{NewPort(c0, proto0), NewPort(c1, proto1)},
-		done: [2]chan struct{}{make(chan struct{}), make(chan struct{})},
-	}
-	return s
+func RunSimpleSwitch(p0, p1 Port) {
+	NewSimpleSwitch(p0, p1).Run()
 }
 
-func RunSimpleProtocolSwitch(c0, c1 net.Conn, proto0, proto1 Protocol) {
-	newSimpleProtocolSwitch(c0, c1, proto0, proto1).Run()
-}
-
-func NewSimpleProtocolSwitch(p0, p1 Port) *SimpleProtocolSwitch {
-	s := &SimpleProtocolSwitch{
+func NewSimpleSwitch(p0, p1 Port) *SimpleSwitch {
+	s := &SimpleSwitch{
 		port: [2]Port{p0, p1},
 		done: [2]chan struct{}{make(chan struct{}), make(chan struct{})},
 	}

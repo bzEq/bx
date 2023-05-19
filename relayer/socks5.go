@@ -48,8 +48,8 @@ func (self *SocksRelayer) ServeAsIntermediateRelayer(red net.Conn) {
 		return
 	}
 	defer blue.Close()
-	blueProtocol := CreateProtocol(self.RelayProtocol)
-	core.RunSimpleProtocolSwitch(red, blue, nil, blueProtocol)
+	core.RunSimpleSwitch(core.NewPort(red, nil),
+		core.NewPort(blue, CreateProtocol(self.RelayProtocol)))
 }
 
 func (self *SocksRelayer) ServeAsEndRelayer(red net.Conn) {
@@ -57,8 +57,8 @@ func (self *SocksRelayer) ServeAsEndRelayer(red net.Conn) {
 	blue := core.MakePipe()
 	go func() {
 		defer blue[0].Close()
-		redProtocol := CreateProtocol(self.RelayProtocol)
-		core.RunSimpleProtocolSwitch(red, blue[0], redProtocol, nil)
+		core.RunSimpleSwitch(core.NewPort(red, CreateProtocol(self.RelayProtocol)),
+			core.NewPort(blue[0], nil))
 	}()
 	server := &socks5.Server{}
 	server.Serve(blue[1])
