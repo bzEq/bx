@@ -7,26 +7,26 @@ import (
 	"net"
 )
 
-// SimpleProtocolSwitch is not responsible to close red port and blue port.
+// SimpleProtocolSwitch is not responsible to close ports.
 type SimpleProtocolSwitch struct {
-	doneRB, doneBR chan struct{}
-	red, blue      Port
+	done [2]chan struct{}
+	port [2]Port
 }
 
 func (self *SimpleProtocolSwitch) Run() {
 	go func() {
-		defer close(self.doneRB)
-		self.switchTraffic(self.red, self.blue)
+		defer close(self.done[0])
+		self.switchTraffic(self.port[0], self.port[1])
 	}()
 	go func() {
-		defer close(self.doneBR)
-		self.switchTraffic(self.blue, self.red)
+		defer close(self.done[1])
+		self.switchTraffic(self.port[1], self.port[0])
 	}()
 	// If error occurs in one direction, we exit the swith immediately,
 	// so that outer function could close both connections fast.
 	select {
-	case <-self.doneBR:
-	case <-self.doneRB:
+	case <-self.done[0]:
+	case <-self.done[1]:
 		return
 	}
 }
@@ -45,24 +45,24 @@ func (self *SimpleProtocolSwitch) switchTraffic(in, out Port) {
 	}
 }
 
-func newSimpleProtocolSwitch(red, blue net.Conn, redProtocol, blueProtocol Protocol) *SimpleProtocolSwitch {
-	return &SimpleProtocolSwitch{
-		doneRB: make(chan struct{}),
-		doneBR: make(chan struct{}),
-		red:    NewPort(red, redProtocol),
-		blue:   NewPort(blue, blueProtocol),
-	}
+func newSimpleProtocolSwitch(c0, c1 net.Conn, proto0, proto1 Protocol) *SimpleProtocolSwitch {
+	s := &SimpleProtocolSwitch{}
+	s.done[0] = make(chan struct{})
+	s.done[1] = make(chan struct{})
+	s.port[0] = NewPort(c0, proto0)
+	s.port[1] = NewPort(c1, proto1)
+	return s
 }
 
-func RunSimpleProtocolSwitch(red, blue net.Conn, redProtocol, blueProtocol Protocol) {
-	newSimpleProtocolSwitch(red, blue, redProtocol, blueProtocol).Run()
+func RunSimpleProtocolSwitch(c0, c1 net.Conn, proto0, proto1 Protocol) {
+	newSimpleProtocolSwitch(c0, c1, proto0, proto1).Run()
 }
 
-func NewSimpleProtocolSwitch(red, blue Port) *SimpleProtocolSwitch {
-	return &SimpleProtocolSwitch{
-		doneRB: make(chan struct{}),
-		doneBR: make(chan struct{}),
-		red:    red,
-		blue:   blue,
-	}
+func NewSimpleProtocolSwitch(p0, p1 Port) *SimpleProtocolSwitch {
+	s := &SimpleProtocolSwitch{}
+	s.port[0] = p0
+	s.port[1] = p1
+	s.done[0] = make(chan struct{})
+	s.done[1] = make(chan struct{})
+	return s
 }
