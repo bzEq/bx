@@ -46,11 +46,10 @@ func (self *SimpleProtocolSwitch) switchTraffic(in, out Port) {
 }
 
 func newSimpleProtocolSwitch(c0, c1 net.Conn, proto0, proto1 Protocol) *SimpleProtocolSwitch {
-	s := &SimpleProtocolSwitch{}
-	s.done[0] = make(chan struct{})
-	s.done[1] = make(chan struct{})
-	s.port[0] = NewPort(c0, proto0)
-	s.port[1] = NewPort(c1, proto1)
+	s := &SimpleProtocolSwitch{
+		port: [2]Port{NewPort(c0, proto0), NewPort(c1, proto1)},
+		done: [2]chan struct{}{make(chan struct{}), make(chan struct{})},
+	}
 	return s
 }
 
@@ -59,10 +58,9 @@ func RunSimpleProtocolSwitch(c0, c1 net.Conn, proto0, proto1 Protocol) {
 }
 
 func NewSimpleProtocolSwitch(p0, p1 Port) *SimpleProtocolSwitch {
-	s := &SimpleProtocolSwitch{}
-	s.port[0] = p0
-	s.port[1] = p1
-	s.done[0] = make(chan struct{})
-	s.done[1] = make(chan struct{})
+	s := &SimpleProtocolSwitch{
+		port: [2]Port{p0, p1},
+		done: [2]chan struct{}{make(chan struct{}), make(chan struct{})},
+	}
 	return s
 }
