@@ -19,7 +19,7 @@ func init() {
 }
 
 func TestCompress(t *testing.T) {
-	pm := core.NewPassManager()
+	pm := core.NewLegacyPassManager()
 	pm.AddPass(&RandCompressor{})
 	pm.AddPass(&RandDecompressor{})
 	r, err := pm.RunOnBytes([]byte("wtf"))
@@ -31,7 +31,7 @@ func TestCompress(t *testing.T) {
 }
 
 func TestLZ4Compress(t *testing.T) {
-	pm := core.NewPassManager()
+	pm := core.NewLegacyPassManager()
 	pm.AddPass(&LZ4Compressor{})
 	pm.AddPass(&LZ4Decompressor{})
 	r, err := pm.RunOnBytes([]byte("wtfwtfwtfwtf"))
@@ -43,7 +43,7 @@ func TestLZ4Compress(t *testing.T) {
 }
 
 func TestSnappyCompress(t *testing.T) {
-	pm := core.NewPassManager()
+	pm := core.NewLegacyPassManager()
 	pm.AddPass(&SnappyEncoder{})
 	pm.AddPass(&SnappyDecoder{})
 	r, err := pm.RunOnBytes([]byte("wtfwtfwtfwtf"))
@@ -55,7 +55,7 @@ func TestSnappyCompress(t *testing.T) {
 }
 
 func TestRandCompress(t *testing.T) {
-	pm := core.NewPassManager()
+	pm := core.NewLegacyPassManager()
 	pm.AddPass(&RandCompressor{})
 	pm.AddPass(&RandDecompressor{})
 	r, err := pm.RunOnBytes([]byte("wtfwtfwtfwtf"))
@@ -88,7 +88,7 @@ func TestLZ4WithHuffmanCompressionRatio(t *testing.T) {
 	for i := 0; i < (1 << 20); i++ {
 		buffer.WriteByte(byte(i))
 	}
-	pm := core.NewPassManager()
+	pm := core.NewLegacyPassManager()
 	pm.AddPass(&LZ4Compressor{})
 	pm.AddPass(&GZipCompressor{Level: flate.HuffmanOnly})
 	res, err := pm.RunOnBytes(buffer.Bytes())
@@ -103,7 +103,7 @@ func TestLZ4WithHuffmanCompressionRatio(t *testing.T) {
 }
 
 func TestRC4(t *testing.T) {
-	pm := core.NewPassManager()
+	pm := core.NewLegacyPassManager()
 	pm.AddPass(&RC4Enc{})
 	pm.AddPass(&RC4Dec{})
 	r, err := pm.RunOnBytes([]byte("wtf"))
@@ -115,7 +115,7 @@ func TestRC4(t *testing.T) {
 }
 
 func TestOBFS(t *testing.T) {
-	pm := core.NewPassManager()
+	pm := core.NewLegacyPassManager()
 	pm.AddPass(&OBFSEncoder{})
 	pm.AddPass(&OBFSDecoder{})
 	r, err := pm.RunOnBytes([]byte("wtf"))
@@ -127,7 +127,7 @@ func TestOBFS(t *testing.T) {
 }
 
 func TestRotateLeft(t *testing.T) {
-	pm := core.NewPassManager()
+	pm := core.NewLegacyPassManager()
 	pm.AddPass(&RotateLeft{})
 	pm.AddPass(&DeRotateLeft{})
 	r, err := pm.RunOnBytes([]byte("wtf"))
@@ -139,7 +139,7 @@ func TestRotateLeft(t *testing.T) {
 }
 
 func TestByteSwap(t *testing.T) {
-	pm := core.NewPassManager()
+	pm := core.NewLegacyPassManager()
 	pm.AddPass(&ByteSwap{})
 	pm.AddPass(&ByteSwap{})
 	r, err := pm.RunOnBytes([]byte("wtfwtfwtfwtfwtfwtfwtf"))
@@ -151,7 +151,7 @@ func TestByteSwap(t *testing.T) {
 }
 
 func TestIntegration(t *testing.T) {
-	pm := core.NewPassManager()
+	pm := core.NewLegacyPassManager()
 	pm.AddPass(&ByteSwap{}).AddPass(&OBFSEncoder{}).AddPass(&LZ4Compressor{}).AddPass(&Reverse{}).AddPass(&RotateLeft{})
 	pm.AddPass(&DeRotateLeft{}).AddPass(&Reverse{}).AddPass(&LZ4Decompressor{}).AddPass(&OBFSDecoder{}).AddPass(&ByteSwap{})
 	r, err := pm.RunOnBytes([]byte("wtfwtfwtf"))

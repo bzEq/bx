@@ -13,11 +13,22 @@ import (
 	"io"
 	"io/ioutil"
 	"math/rand"
+	"net"
 
 	"github.com/bzEq/bx/core"
 	lz4 "github.com/bzEq/bx/third_party/lz4v4"
 	"github.com/bzEq/bx/third_party/snappy"
 )
+
+func WrapBytesPass(p core.LegacyPass, b *net.Buffers) error {
+	buf := core.BuffersAsOneSlice(*b)
+	buf, err := p.RunOnBytes(buf)
+	if err != nil {
+		return err
+	}
+	*b = core.MakeBuffers(buf)
+	return nil
+}
 
 type DummyPass struct{}
 
@@ -56,7 +67,7 @@ type RandCompressor struct{}
 
 func (self *RandCompressor) RunOnBytes(p []byte) ([]byte, error) {
 	x := rand.Uint64() % NUM_COMPRESSOR
-	var pass core.Pass
+	var pass core.LegacyPass
 	switch x {
 	case COMPRESS_GZIP:
 		pass = &GZipCompressor{Level: flate.BestSpeed}
@@ -83,7 +94,7 @@ func (self *RandDecompressor) RunOnBytes(p []byte) ([]byte, error) {
 	}
 	last := len(p) - 1
 	x := int(p[last])
-	var pass core.Pass
+	var pass core.LegacyPass
 	switch x {
 	case COMPRESS_GZIP:
 		pass = &GZipDecompressor{}
@@ -174,12 +185,20 @@ type OBFSEncoder struct {
 	SimpleOBFS
 }
 
+func (self *OBFSEncoder) RunOnBuffers(b *net.Buffers) error {
+	return WrapBytesPass(self, b)
+}
+
 func (self *OBFSEncoder) RunOnBytes(p []byte) ([]byte, error) {
 	return self.SimpleOBFS.Encode(p)
 }
 
 type OBFSDecoder struct {
 	SimpleOBFS
+}
+
+func (self *OBFSDecoder) RunOnBuffers(b *net.Buffers) error {
+	return WrapBytesPass(self, b)
 }
 
 func (self *OBFSDecoder) RunOnBytes(p []byte) ([]byte, error) {
