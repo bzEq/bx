@@ -112,3 +112,26 @@ func SyncMapSize(m *sync.Map) int {
 	})
 	return n
 }
+
+func BuffersAsOneSlice(b net.Buffers) []byte {
+	if len(b) == 1 {
+		return b[0]
+	}
+	var res []byte
+	for _, v := range b {
+		res = append(res, v...)
+	}
+	return res
+}
+
+func BuffersLen(b net.Buffers) (l int) {
+	for _, v := range b {
+		l += len(v)
+	}
+	return l
+}
+
+func MakeBuffers(v []byte) (res net.Buffers) {
+	res = append(res, v)
+	return res
+}

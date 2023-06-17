@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/gob"
 	"encoding/json"
+	"net"
 )
 
 type JsonRPC struct {
@@ -16,25 +17,25 @@ func (self *JsonRPC) Request(req interface{}, resp interface{}) error {
 		if err != nil {
 			return err
 		}
-		if err := self.P.Pack(doc); err != nil {
+		if err := self.P.Pack(MakeBuffers(doc)); err != nil {
 			return err
 		}
 	}
 	{
-		doc, err := self.P.Unpack()
-		if err != nil {
+		var b net.Buffers
+		if err := self.P.Unpack(&b); err != nil {
 			return err
 		}
-		return json.Unmarshal(doc, resp)
+		return json.Unmarshal(BuffersAsOneSlice(b), resp)
 	}
 }
 
 func (self *JsonRPC) ReadRequest(req interface{}) error {
-	doc, err := self.P.Unpack()
-	if err != nil {
+	var b net.Buffers
+	if err := self.P.Unpack(&b); err != nil {
 		return err
 	}
-	return json.Unmarshal(doc, req)
+	return json.Unmarshal(BuffersAsOneSlice(b), req)
 }
 
 func (self *JsonRPC) SendResponse(resp interface{}) error {
@@ -42,7 +43,7 @@ func (self *JsonRPC) SendResponse(resp interface{}) error {
 	if err != nil {
 		return err
 	}
-	return self.P.Pack(doc)
+	return self.P.Pack(MakeBuffers(doc))
 }
 
 type GobRPC struct {
@@ -56,27 +57,29 @@ func (self *GobRPC) Request(req interface{}, resp interface{}) error {
 		if err := enc.Encode(req); err != nil {
 			return err
 		}
-		if err := self.P.Pack(buf.Bytes()); err != nil {
+		if err := self.P.Pack(MakeBuffers(buf.Bytes())); err != nil {
 			return err
 		}
 	}
 	{
-		doc, err := self.P.Unpack()
+		var b net.Buffers
+		err := self.P.Unpack(&b)
 		if err != nil {
 			return err
 		}
-		buf := bytes.NewBuffer(doc)
+		buf := bytes.NewBuffer(BuffersAsOneSlice(b))
 		dec := gob.NewDecoder(buf)
 		return dec.Decode(resp)
 	}
 }
 
 func (self *GobRPC) ReadRequest(req interface{}) error {
-	doc, err := self.P.Unpack()
+	var b net.Buffers
+	err := self.P.Unpack(&b)
 	if err != nil {
 		return err
 	}
-	buf := bytes.NewBuffer(doc)
+	buf := bytes.NewBuffer(BuffersAsOneSlice(b))
 	dec := gob.NewDecoder(buf)
 	return dec.Decode(req)
 }
@@ -87,5 +90,5 @@ func (self *GobRPC) SendResponse(resp interface{}) error {
 	if err := enc.Encode(resp); err != nil {
 		return err
 	}
-	return self.P.Pack(buf.Bytes())
+	return self.P.Pack(MakeBuffers(buf.Bytes()))
 }

@@ -4,6 +4,7 @@ package core
 
 import (
 	"log"
+	"net"
 )
 
 // SimpleSwitch is not responsible to close ports.
@@ -32,12 +33,13 @@ func (self *SimpleSwitch) Run() {
 
 func (self *SimpleSwitch) switchTraffic(in, out Port) {
 	for {
-		buf, err := in.Unpack()
+		var b net.Buffers
+		err := in.Unpack(&b)
 		if err != nil {
 			log.Println(err)
 			return
 		}
-		if err = out.Pack(buf); err != nil {
+		if err = out.Pack(b); err != nil {
 			log.Println(err)
 			return
 		}

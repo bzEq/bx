@@ -5,6 +5,7 @@ package core
 import (
 	"fmt"
 	"log"
+	"net"
 	"sync"
 )
 
@@ -32,17 +33,18 @@ type SimpleRouter struct {
 func (self *SimpleRouter) route(id uint64, r *Route) {
 	defer self.r.Delete(id)
 	for {
-		buf, err := r.P.Unpack()
+		var b net.Buffers
+		err := r.P.Unpack(&b)
 		if err != nil {
 			r.Err <- err
 			return
 		}
-		buf, err = self.C.Encode(id, buf)
+		buf, err := self.C.Encode(id, BuffersAsOneSlice(b))
 		if err != nil {
 			r.Err <- err
 			return
 		}
-		if err = self.P.Pack(buf); err != nil {
+		if err = self.P.Pack(MakeBuffers(buf)); err != nil {
 			r.Err <- err
 			return
 		}
@@ -60,12 +62,13 @@ func (self *SimpleRouter) NewRoute(id uint64, P *SyncPort) (*Route, error) {
 
 func (self *SimpleRouter) Run() {
 	for {
-		buf, err := self.P.Unpack()
+		var b net.Buffers
+		err := self.P.Unpack(&b)
 		if err != nil {
 			log.Println(err)
 			return
 		}
-		id, buf, err := self.C.Decode(buf)
+		id, buf, err := self.C.Decode(BuffersAsOneSlice(b))
 		if err != nil {
 			log.Println(err)
 			continue
@@ -77,7 +80,7 @@ func (self *SimpleRouter) Run() {
 		}
 		go func() {
 			r := v.(*Route)
-			if err := r.P.Pack(buf); err != nil {
+			if err := r.P.Pack(MakeBuffers(buf)); err != nil {
 				r.Err <- err
 				return
 			}

@@ -1,9 +1,13 @@
-// Copyright (c) 2020 Kai Luo <gluokai@gmail.com>. All rights reserved.
+// Copyright (c) 2023 Kai Luo <gluokai@gmail.com>. All rights reserved.
 
 package core
 
+import (
+	"net"
+)
+
 type Pass interface {
-	RunOnBytes([]byte) ([]byte, error)
+	RunOnBuffers(*net.Buffers) error
 }
 
 type PassManager struct {
@@ -15,10 +19,9 @@ func (self *PassManager) AddPass(p Pass) *PassManager {
 	return self
 }
 
-func (self *PassManager) RunOnBytes(buf []byte) (result []byte, err error) {
-	result = buf
+func (self *PassManager) RunOnBuffers(b *net.Buffers) (err error) {
 	for _, p := range self.passes {
-		result, err = p.RunOnBytes(result)
+		err = p.RunOnBuffers(b)
 		if err != nil {
 			return
 		}

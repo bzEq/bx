@@ -15,8 +15,8 @@ const DEFAULT_BUFFER_SIZE = 64 << 10
 const DEFAULT_UDP_BUFFER_SIZE = 2 << 10
 
 type Port interface {
-	Pack([]byte) error
-	Unpack() ([]byte, error)
+	Pack(net.Buffers) error
+	Unpack(*net.Buffers) error
 }
 
 type NetPort struct {
@@ -27,18 +27,18 @@ type NetPort struct {
 	timeout time.Duration
 }
 
-func (self *NetPort) Unpack() ([]byte, error) {
+func (self *NetPort) Unpack(b *net.Buffers) error {
 	if err := self.C.SetReadDeadline(time.Now().Add(self.timeout)); err != nil {
-		return nil, err
+		return err
 	}
-	return self.P.Unpack(self.rbuf)
+	return self.P.Unpack(self.rbuf, b)
 }
 
-func (self *NetPort) Pack(data []byte) error {
+func (self *NetPort) Pack(b net.Buffers) error {
 	if err := self.C.SetWriteDeadline(time.Now().Add(self.timeout)); err != nil {
 		return err
 	}
-	if err := self.P.Pack(data, self.wbuf); err != nil {
+	if err := self.P.Pack(b, self.wbuf); err != nil {
 		return err
 	}
 	return self.wbuf.Flush()
@@ -50,28 +50,29 @@ type RawNetPort struct {
 	buf     []byte
 }
 
-func (self *RawNetPort) Pack(data []byte) error {
+func (self *RawNetPort) Pack(b net.Buffers) error {
 	if err := self.C.SetWriteDeadline(time.Now().Add(self.timeout)); err != nil {
 		return err
 	}
-	_, err := self.C.Write(data)
+	_, err := b.WriteTo(self.C)
 	return err
 }
 
-func (self *RawNetPort) Unpack() ([]byte, error) {
+func (self *RawNetPort) Unpack(b *net.Buffers) error {
 	if len(self.buf) < DEFAULT_UDP_BUFFER_SIZE {
 		self.buf = make([]byte, DEFAULT_BUFFER_SIZE)
 	}
 	if err := self.C.SetReadDeadline(time.Now().Add(self.timeout)); err != nil {
-		return nil, err
+		return err
 	}
 	nr, err := self.C.Read(self.buf)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	data := self.buf[:nr]
 	self.buf = self.buf[nr:]
-	return data, nil
+	*b = append(*b, data)
+	return nil
 }
 
 type SyncPort struct {
@@ -79,16 +80,16 @@ type SyncPort struct {
 	umu, pmu sync.Mutex
 }
 
-func (self *SyncPort) Unpack() ([]byte, error) {
+func (self *SyncPort) Unpack(b *net.Buffers) error {
 	self.umu.Lock()
 	defer self.umu.Unlock()
-	return self.Port.Unpack()
+	return self.Port.Unpack(b)
 }
 
-func (self *SyncPort) Pack(data []byte) error {
+func (self *SyncPort) Pack(b net.Buffers) error {
 	self.pmu.Lock()
 	defer self.pmu.Unlock()
-	return self.Port.Pack(data)
+	return self.Port.Pack(b)
 }
 
 func NewPort(c net.Conn, p Protocol) Port {
