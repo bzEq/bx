@@ -18,17 +18,6 @@ func CreateProtocol(name string) core.Protocol {
 	switch name {
 	case "raw":
 		return nil
-	case "variant":
-		vp := core.NewVariantProtocol()
-		return vp.Add(&core.ProtocolWithPass{
-			P:  &core.LVProtocol{},
-			UP: pmb.BuildUnpackPassManager(),
-			PP: pmb.BuildPackPassManager(),
-		}).Add(&core.ProtocolWithPass{
-			P:  &core.HTTPProtocol{},
-			UP: pmb.BuildUnpackPassManager(),
-			PP: pmb.BuildPackPassManager(),
-		})
 	default:
 		return &core.ProtocolWithPass{
 			P:  &core.HTTPProtocol{},

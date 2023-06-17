@@ -51,10 +51,12 @@ func (self *Server) relayTCP(addr string) error {
 func (self *Server) relayUDP() error {
 	self.P = core.AsSyncPort(self.P)
 	for {
-		data, err := self.P.Unpack()
+		var b net.Buffers
+		err := self.P.Unpack(&b)
 		if err != nil {
 			return err
 		}
+		data := core.BuffersAsOneSlice(b)
 		go func() {
 			var msg UDPMessage
 			dec := gob.NewDecoder(bytes.NewBuffer(data))
@@ -91,7 +93,7 @@ func (self *Server) relayUDP() error {
 					log.Println(err)
 					return
 				}
-				if err := self.P.Pack(pack.Bytes()); err != nil {
+				if err := self.P.Pack(core.MakeBuffers(pack.Bytes())); err != nil {
 					log.Println(err)
 					return
 				}
@@ -101,11 +103,13 @@ func (self *Server) relayUDP() error {
 }
 
 func (self *Server) Run() {
-	pack, err := self.P.Unpack()
+	var b net.Buffers
+	err := self.P.Unpack(&b)
 	if err != nil {
 		log.Println(err)
 		return
 	}
+	pack := core.BuffersAsOneSlice(b)
 	buf := bytes.NewBuffer(pack)
 	dec := gob.NewDecoder(buf)
 	var i Intrinsic
