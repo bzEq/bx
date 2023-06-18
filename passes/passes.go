@@ -20,7 +20,7 @@ import (
 	"github.com/bzEq/bx/third_party/snappy"
 )
 
-func WrapBytesPass(p core.LegacyPass, b *iovec.IoVec) error {
+func WrapLegacyPass(p core.LegacyPass, b *iovec.IoVec) error {
 	buf := b.Consume()
 	buf, err := p.RunOnBytes(buf)
 	if err != nil {
@@ -186,7 +186,7 @@ type OBFSEncoder struct {
 }
 
 func (self *OBFSEncoder) Run(b *iovec.IoVec) error {
-	return WrapBytesPass(self, b)
+	return WrapLegacyPass(self, b)
 }
 
 func (self *OBFSEncoder) RunOnBytes(p []byte) ([]byte, error) {
@@ -198,7 +198,7 @@ type OBFSDecoder struct {
 }
 
 func (self *OBFSDecoder) Run(b *iovec.IoVec) error {
-	return WrapBytesPass(self, b)
+	return WrapLegacyPass(self, b)
 }
 
 func (self *OBFSDecoder) RunOnBytes(p []byte) ([]byte, error) {
