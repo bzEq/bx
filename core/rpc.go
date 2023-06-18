@@ -4,7 +4,8 @@ import (
 	"bytes"
 	"encoding/gob"
 	"encoding/json"
-	"net"
+
+	"github.com/bzEq/bx/core/iovec"
 )
 
 type JsonRPC struct {
@@ -17,25 +18,25 @@ func (self *JsonRPC) Request(req interface{}, resp interface{}) error {
 		if err != nil {
 			return err
 		}
-		if err := self.P.Pack(MakeBuffers(doc)); err != nil {
+		if err := self.P.Pack(iovec.FromSlice(doc)); err != nil {
 			return err
 		}
 	}
 	{
-		var b net.Buffers
+		var b iovec.IoVec
 		if err := self.P.Unpack(&b); err != nil {
 			return err
 		}
-		return json.Unmarshal(BuffersAsOneSlice(b), resp)
+		return json.Unmarshal(b.AsOneSlice(), resp)
 	}
 }
 
 func (self *JsonRPC) ReadRequest(req interface{}) error {
-	var b net.Buffers
+	var b iovec.IoVec
 	if err := self.P.Unpack(&b); err != nil {
 		return err
 	}
-	return json.Unmarshal(BuffersAsOneSlice(b), req)
+	return json.Unmarshal(b.AsOneSlice(), req)
 }
 
 func (self *JsonRPC) SendResponse(resp interface{}) error {
@@ -43,7 +44,7 @@ func (self *JsonRPC) SendResponse(resp interface{}) error {
 	if err != nil {
 		return err
 	}
-	return self.P.Pack(MakeBuffers(doc))
+	return self.P.Pack(iovec.FromSlice(doc))
 }
 
 type GobRPC struct {
@@ -57,29 +58,29 @@ func (self *GobRPC) Request(req interface{}, resp interface{}) error {
 		if err := enc.Encode(req); err != nil {
 			return err
 		}
-		if err := self.P.Pack(MakeBuffers(buf.Bytes())); err != nil {
+		if err := self.P.Pack(iovec.FromSlice(buf.Bytes())); err != nil {
 			return err
 		}
 	}
 	{
-		var b net.Buffers
+		var b iovec.IoVec
 		err := self.P.Unpack(&b)
 		if err != nil {
 			return err
 		}
-		buf := bytes.NewBuffer(BuffersAsOneSlice(b))
+		buf := bytes.NewBuffer(b.AsOneSlice())
 		dec := gob.NewDecoder(buf)
 		return dec.Decode(resp)
 	}
 }
 
 func (self *GobRPC) ReadRequest(req interface{}) error {
-	var b net.Buffers
+	var b iovec.IoVec
 	err := self.P.Unpack(&b)
 	if err != nil {
 		return err
 	}
-	buf := bytes.NewBuffer(BuffersAsOneSlice(b))
+	buf := bytes.NewBuffer(b.AsOneSlice())
 	dec := gob.NewDecoder(buf)
 	return dec.Decode(req)
 }
@@ -90,5 +91,5 @@ func (self *GobRPC) SendResponse(resp interface{}) error {
 	if err := enc.Encode(resp); err != nil {
 		return err
 	}
-	return self.P.Pack(MakeBuffers(buf.Bytes()))
+	return self.P.Pack(iovec.FromSlice(buf.Bytes()))
 }

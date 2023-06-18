@@ -4,8 +4,9 @@ package core
 
 import (
 	"bufio"
-	"net"
 	"testing"
+
+	"github.com/bzEq/bx/core/iovec"
 )
 
 func MakeBufferedPipe() (*bufio.Reader, *bufio.Writer) {
@@ -20,12 +21,12 @@ func TestHTTPProtocol(t *testing.T) {
 	var err error
 	done := make(chan struct{})
 	go func() {
-		var b net.Buffers
+		var b iovec.IoVec
 		err = p.Unpack(r, &b)
-		buf = BuffersAsOneSlice(b)
+		buf = b.AsOneSlice()
 		close(done)
 	}()
-	p.Pack(MakeBuffers([]byte("wtfwtfwtfwtf")), w)
+	p.Pack(iovec.FromSlice([]byte("wtfwtfwtfwtf")), w)
 	w.Flush()
 	<-done
 	if string(buf) != "wtfwtfwtfwtf" || err != nil {

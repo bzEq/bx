@@ -4,7 +4,8 @@ package core
 
 import (
 	"log"
-	"net"
+
+	"github.com/bzEq/bx/core/iovec"
 )
 
 // SimpleSwitch is not responsible to close ports.
@@ -33,7 +34,7 @@ func (self *SimpleSwitch) Run() {
 
 func (self *SimpleSwitch) switchTraffic(in, out Port) {
 	for {
-		var b net.Buffers
+		var b iovec.IoVec
 		err := in.Unpack(&b)
 		if err != nil {
 			log.Println(err)

@@ -6,13 +6,14 @@ import (
 	"bufio"
 	"errors"
 	"io"
-	"net"
 	"net/http"
+
+	"github.com/bzEq/bx/core/iovec"
 )
 
 type Protocol interface {
-	Pack(net.Buffers, *bufio.Writer) error
-	Unpack(*bufio.Reader, *net.Buffers) error
+	Pack(iovec.IoVec, *bufio.Writer) error
+	Unpack(*bufio.Reader, *iovec.IoVec) error
 }
 
 type ProtocolStack struct{}
@@ -23,34 +24,34 @@ type ProtocolWithPass struct {
 	UP Pass
 }
 
-func (self *ProtocolWithPass) Pack(b net.Buffers, out *bufio.Writer) error {
-	err := self.PP.RunOnBuffers(&b)
+func (self *ProtocolWithPass) Pack(b iovec.IoVec, out *bufio.Writer) error {
+	err := self.PP.Run(&b)
 	if err != nil {
 		return err
 	}
 	return self.P.Pack(b, out)
 }
 
-func (self *ProtocolWithPass) Unpack(in *bufio.Reader, b *net.Buffers) error {
+func (self *ProtocolWithPass) Unpack(in *bufio.Reader, b *iovec.IoVec) error {
 	err := self.P.Unpack(in, b)
 	if err != nil {
 		return err
 	}
-	return self.UP.RunOnBuffers(b)
+	return self.UP.Run(b)
 }
 
 const UNUSUAL_BUFFER_LENGTH_THRESHOLD = DEFAULT_BUFFER_SIZE * 2
 
 type HTTPProtocol struct{}
 
-func (self *HTTPProtocol) Pack(b net.Buffers, out *bufio.Writer) error {
+func (self *HTTPProtocol) Pack(b iovec.IoVec, out *bufio.Writer) error {
 	req, err := http.NewRequest("POST", "/", &b)
 	if err != nil {
 		return err
 	}
 	req.Header.Set("User-Agent", "Mozilla/5.0")
 	if req.GetBody == nil {
-		req.ContentLength = int64(BuffersLen(b))
+		req.ContentLength = int64(b.Len())
 		req.GetBody = func() (io.ReadCloser, error) {
 			return io.NopCloser(&b), nil
 		}
@@ -58,7 +59,7 @@ func (self *HTTPProtocol) Pack(b net.Buffers, out *bufio.Writer) error {
 	return req.Write(out)
 }
 
-func (self *HTTPProtocol) Unpack(in *bufio.Reader, b *net.Buffers) error {
+func (self *HTTPProtocol) Unpack(in *bufio.Reader, b *iovec.IoVec) error {
 	req, err := http.ReadRequest(in)
 	if err != nil {
 		return err

@@ -5,13 +5,10 @@ package core
 import (
 	"fmt"
 	"log"
-	"net"
 	"sync"
-)
 
-type Runnable interface {
-	Run()
-}
+	"github.com/bzEq/bx/core/iovec"
+)
 
 type Codec interface {
 	Encode(uint64, []byte) ([]byte, error)
@@ -33,18 +30,18 @@ type SimpleRouter struct {
 func (self *SimpleRouter) route(id uint64, r *Route) {
 	defer self.r.Delete(id)
 	for {
-		var b net.Buffers
+		var b iovec.IoVec
 		err := r.P.Unpack(&b)
 		if err != nil {
 			r.Err <- err
 			return
 		}
-		buf, err := self.C.Encode(id, BuffersAsOneSlice(b))
+		buf, err := self.C.Encode(id, b.AsOneSlice())
 		if err != nil {
 			r.Err <- err
 			return
 		}
-		if err = self.P.Pack(MakeBuffers(buf)); err != nil {
+		if err = self.P.Pack(iovec.FromSlice(buf)); err != nil {
 			r.Err <- err
 			return
 		}
@@ -62,13 +59,13 @@ func (self *SimpleRouter) NewRoute(id uint64, P *SyncPort) (*Route, error) {
 
 func (self *SimpleRouter) Run() {
 	for {
-		var b net.Buffers
+		var b iovec.IoVec
 		err := self.P.Unpack(&b)
 		if err != nil {
 			log.Println(err)
 			return
 		}
-		id, buf, err := self.C.Decode(BuffersAsOneSlice(b))
+		id, buf, err := self.C.Decode(b.AsOneSlice())
 		if err != nil {
 			log.Println(err)
 			continue
@@ -80,7 +77,7 @@ func (self *SimpleRouter) Run() {
 		}
 		go func() {
 			r := v.(*Route)
-			if err := r.P.Pack(MakeBuffers(buf)); err != nil {
+			if err := r.P.Pack(iovec.FromSlice(buf)); err != nil {
 				r.Err <- err
 				return
 			}

@@ -3,11 +3,11 @@
 package core
 
 import (
-	"net"
+	"github.com/bzEq/bx/core/iovec"
 )
 
 type Pass interface {
-	RunOnBuffers(*net.Buffers) error
+	Run(*iovec.IoVec) error
 }
 
 type PassManager struct {
@@ -19,9 +19,9 @@ func (self *PassManager) AddPass(p Pass) *PassManager {
 	return self
 }
 
-func (self *PassManager) RunOnBuffers(b *net.Buffers) (err error) {
+func (self *PassManager) Run(b *iovec.IoVec) (err error) {
 	for _, p := range self.passes {
-		err = p.RunOnBuffers(b)
+		err = p.Run(b)
 		if err != nil {
 			return
 		}

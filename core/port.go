@@ -7,6 +7,8 @@ import (
 	"net"
 	"sync"
 	"time"
+
+	"github.com/bzEq/bx/core/iovec"
 )
 
 const DEFAULT_TIMEOUT = 60 * 60
@@ -15,8 +17,8 @@ const DEFAULT_BUFFER_SIZE = 64 << 10
 const DEFAULT_UDP_BUFFER_SIZE = 2 << 10
 
 type Port interface {
-	Pack(net.Buffers) error
-	Unpack(*net.Buffers) error
+	Pack(iovec.IoVec) error
+	Unpack(*iovec.IoVec) error
 }
 
 type NetPort struct {
@@ -27,14 +29,14 @@ type NetPort struct {
 	timeout time.Duration
 }
 
-func (self *NetPort) Unpack(b *net.Buffers) error {
+func (self *NetPort) Unpack(b *iovec.IoVec) error {
 	if err := self.C.SetReadDeadline(time.Now().Add(self.timeout)); err != nil {
 		return err
 	}
 	return self.P.Unpack(self.rbuf, b)
 }
 
-func (self *NetPort) Pack(b net.Buffers) error {
+func (self *NetPort) Pack(b iovec.IoVec) error {
 	if err := self.C.SetWriteDeadline(time.Now().Add(self.timeout)); err != nil {
 		return err
 	}
@@ -50,7 +52,7 @@ type RawNetPort struct {
 	buf     []byte
 }
 
-func (self *RawNetPort) Pack(b net.Buffers) error {
+func (self *RawNetPort) Pack(b iovec.IoVec) error {
 	if err := self.C.SetWriteDeadline(time.Now().Add(self.timeout)); err != nil {
 		return err
 	}
@@ -58,7 +60,7 @@ func (self *RawNetPort) Pack(b net.Buffers) error {
 	return err
 }
 
-func (self *RawNetPort) Unpack(b *net.Buffers) error {
+func (self *RawNetPort) Unpack(b *iovec.IoVec) error {
 	if len(self.buf) < DEFAULT_UDP_BUFFER_SIZE {
 		self.buf = make([]byte, DEFAULT_BUFFER_SIZE)
 	}
@@ -80,13 +82,13 @@ type SyncPort struct {
 	umu, pmu sync.Mutex
 }
 
-func (self *SyncPort) Unpack(b *net.Buffers) error {
+func (self *SyncPort) Unpack(b *iovec.IoVec) error {
 	self.umu.Lock()
 	defer self.umu.Unlock()
 	return self.Port.Unpack(b)
 }
 
-func (self *SyncPort) Pack(b net.Buffers) error {
+func (self *SyncPort) Pack(b iovec.IoVec) error {
 	self.pmu.Lock()
 	defer self.pmu.Unlock()
 	return self.Port.Pack(b)
