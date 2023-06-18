@@ -20,9 +20,6 @@ func (self IoVec) Len() (l int) {
 }
 
 func (self IoVec) AsOneSlice() []byte {
-	if len(self) == 1 {
-		return self[0]
-	}
 	var s []byte
 	for _, e := range self {
 		s = append(s, e...)

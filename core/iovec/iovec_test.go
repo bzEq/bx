@@ -32,10 +32,15 @@ func TestAsOneSlice1(t *testing.T) {
 
 func TestWriteAfterAsOneSlice(t *testing.T) {
 	var v IoVec
-	v.Append([]byte("hello"))
+	v.Append(make([]byte, 1, 2))
 	s := v.AsOneSlice()
+	s[0] = 'h'
 	s = append(s, '!')
+	s[0] = 'w'
 	if string(v.AsOneSlice()) == string(s) {
+		t.Fail()
+	}
+	if v.AsOneSlice()[0] == 'w' {
 		t.Fail()
 	}
 }
