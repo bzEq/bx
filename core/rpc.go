@@ -27,7 +27,7 @@ func (self *JsonRPC) Request(req interface{}, resp interface{}) error {
 		if err := self.P.Unpack(&b); err != nil {
 			return err
 		}
-		return json.Unmarshal(b.AsOneSlice(), resp)
+		return json.Unmarshal(b.Consume(), resp)
 	}
 }
 
@@ -36,7 +36,7 @@ func (self *JsonRPC) ReadRequest(req interface{}) error {
 	if err := self.P.Unpack(&b); err != nil {
 		return err
 	}
-	return json.Unmarshal(b.AsOneSlice(), req)
+	return json.Unmarshal(b.Consume(), req)
 }
 
 func (self *JsonRPC) SendResponse(resp interface{}) error {
@@ -68,7 +68,7 @@ func (self *GobRPC) Request(req interface{}, resp interface{}) error {
 		if err != nil {
 			return err
 		}
-		buf := bytes.NewBuffer(b.AsOneSlice())
+		buf := bytes.NewBuffer(b.Consume())
 		dec := gob.NewDecoder(buf)
 		return dec.Decode(resp)
 	}
@@ -80,7 +80,7 @@ func (self *GobRPC) ReadRequest(req interface{}) error {
 	if err != nil {
 		return err
 	}
-	buf := bytes.NewBuffer(b.AsOneSlice())
+	buf := bytes.NewBuffer(b.Consume())
 	dec := gob.NewDecoder(buf)
 	return dec.Decode(req)
 }

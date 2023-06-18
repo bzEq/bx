@@ -21,7 +21,7 @@ import (
 )
 
 func WrapBytesPass(p core.LegacyPass, b *iovec.IoVec) error {
-	buf := b.AsOneSlice()
+	buf := b.Consume()
 	buf, err := p.RunOnBytes(buf)
 	if err != nil {
 		return err

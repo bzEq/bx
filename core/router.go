@@ -36,7 +36,7 @@ func (self *SimpleRouter) route(id uint64, r *Route) {
 			r.Err <- err
 			return
 		}
-		buf, err := self.C.Encode(id, b.AsOneSlice())
+		buf, err := self.C.Encode(id, b.Consume())
 		if err != nil {
 			r.Err <- err
 			return
@@ -65,7 +65,7 @@ func (self *SimpleRouter) Run() {
 			log.Println(err)
 			return
 		}
-		id, buf, err := self.C.Decode(b.AsOneSlice())
+		id, buf, err := self.C.Decode(b.Consume())
 		if err != nil {
 			log.Println(err)
 			continue

@@ -23,7 +23,7 @@ func TestHTTPProtocol(t *testing.T) {
 	go func() {
 		var b iovec.IoVec
 		err = p.Unpack(r, &b)
-		buf = b.AsOneSlice()
+		buf = b.Consume()
 		close(done)
 	}()
 	p.Pack(iovec.FromSlice([]byte("wtfwtfwtfwtf")), w)
