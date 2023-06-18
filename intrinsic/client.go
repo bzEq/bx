@@ -14,6 +14,7 @@ import (
 	"sync/atomic"
 
 	"github.com/bzEq/bx/core"
+	"github.com/bzEq/bx/core/iovec"
 )
 
 type ClientContext struct {
@@ -97,7 +98,7 @@ func (self *ClientContext) dialTCP(network, addr string) (net.Conn, error) {
 	go func() {
 		defer local[1].Close()
 		// Connect remote server without further check to be fast.
-		cp.Pack(core.MakeBuffers(pack.Bytes()))
+		cp.Pack(iovec.FromSlice(pack.Bytes()))
 		core.NewSimpleSwitch(cp, core.NewPort(local[1], nil)).Run()
 	}()
 	return local[0], nil
@@ -129,7 +130,7 @@ func (self *ClientContext) getOrCreateRouter() (*core.SimpleRouter, error) {
 				log.Println(err)
 				return
 			}
-			if err := router.P.Pack(core.MakeBuffers(buf.Bytes())); err != nil {
+			if err := router.P.Pack(iovec.FromSlice(buf.Bytes())); err != nil {
 				c.Close()
 				log.Println(err)
 				return

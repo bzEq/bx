@@ -13,20 +13,20 @@ import (
 	"io"
 	"io/ioutil"
 	"math/rand"
-	"net"
 
 	"github.com/bzEq/bx/core"
+	"github.com/bzEq/bx/core/iovec"
 	lz4 "github.com/bzEq/bx/third_party/lz4v4"
 	"github.com/bzEq/bx/third_party/snappy"
 )
 
-func WrapBytesPass(p core.LegacyPass, b *net.Buffers) error {
-	buf := core.BuffersAsOneSlice(*b)
+func WrapBytesPass(p core.LegacyPass, b *iovec.IoVec) error {
+	buf := b.AsOneSlice()
 	buf, err := p.RunOnBytes(buf)
 	if err != nil {
 		return err
 	}
-	*b = core.MakeBuffers(buf)
+	*b = iovec.FromSlice(buf)
 	return nil
 }
 
@@ -185,7 +185,7 @@ type OBFSEncoder struct {
 	SimpleOBFS
 }
 
-func (self *OBFSEncoder) RunOnBuffers(b *net.Buffers) error {
+func (self *OBFSEncoder) Run(b *iovec.IoVec) error {
 	return WrapBytesPass(self, b)
 }
 
@@ -197,7 +197,7 @@ type OBFSDecoder struct {
 	SimpleOBFS
 }
 
-func (self *OBFSDecoder) RunOnBuffers(b *net.Buffers) error {
+func (self *OBFSDecoder) Run(b *iovec.IoVec) error {
 	return WrapBytesPass(self, b)
 }
 
