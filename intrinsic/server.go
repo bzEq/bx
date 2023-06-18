@@ -57,10 +57,9 @@ func (self *Server) relayUDP() error {
 		if err != nil {
 			return err
 		}
-		data := b.Consume()
 		go func() {
 			var msg UDPMessage
-			dec := gob.NewDecoder(bytes.NewBuffer(data))
+			dec := gob.NewDecoder(&b)
 			if err := dec.Decode(&msg); err != nil {
 				log.Println(err)
 				return
@@ -110,9 +109,7 @@ func (self *Server) Run() {
 		log.Println(err)
 		return
 	}
-	pack := b.Consume()
-	buf := bytes.NewBuffer(pack)
-	dec := gob.NewDecoder(buf)
+	dec := gob.NewDecoder(&b)
 	var i Intrinsic
 	if err := dec.Decode(&i); err != nil {
 		log.Println(err)
