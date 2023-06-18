@@ -44,3 +44,28 @@ func TestWriteAfterAsOneSlice(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func TestConsume(t *testing.T) {
+	var v IoVec
+	v.Append([]byte("hello"))
+	v.Append([]byte(", world"))
+	s := v.Consume()
+	if v.Len() != 0 {
+		t.Fail()
+	}
+	if string(s) != "hello, world" {
+		t.Fail()
+	}
+}
+
+func TestConsume1(t *testing.T) {
+	var v IoVec
+	v.Append([]byte("hello"))
+	s := v.Consume()
+	if v.Len() != 0 {
+		t.Fail()
+	}
+	if string(s) != "hello" {
+		t.Fail()
+	}
+}

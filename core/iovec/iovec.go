@@ -1,6 +1,7 @@
 package iovec
 
 import (
+	"bytes"
 	"io"
 	"net"
 )
@@ -38,4 +39,18 @@ func (self *IoVec) WriteTo(w io.Writer) (int64, error) {
 
 func (self *IoVec) Read(p []byte) (int, error) {
 	return (*net.Buffers)(self).Read(p)
+}
+
+func (self *IoVec) Consume() []byte {
+	if len(*self) == 1 {
+		data := (*self)[0]
+		*self = IoVec{}
+		return data
+	}
+	b := &bytes.Buffer{}
+	_, err := b.ReadFrom(self)
+	if err != nil {
+		panic(err)
+	}
+	return b.Bytes()
 }
