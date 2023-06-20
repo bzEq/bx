@@ -1,3 +1,5 @@
+// Copyright (c) 2023 Kai Luo <gluokai@gmail.com>. All rights reserved.
+
 package iovec
 
 import (

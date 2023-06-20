@@ -1,3 +1,5 @@
+// Copyright (c) 2023 Kai Luo <gluokai@gmail.com>. All rights reserved.
+
 #include <stddef.h>
 #include <stdint.h>
 
