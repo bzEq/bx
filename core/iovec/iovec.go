@@ -21,11 +21,11 @@ func (self IoVec) Len() (l int) {
 }
 
 func (self IoVec) AsOneSlice() []byte {
-	var s []byte
-	for _, e := range self {
-		s = append(s, e...)
+	var b bytes.Buffer
+	for _, s := range self {
+		b.Write(s)
 	}
-	return s
+	return b.Bytes()
 }
 
 func (self *IoVec) Append(s []byte) *IoVec {
