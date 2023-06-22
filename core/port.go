@@ -71,9 +71,9 @@ func (self *RawNetPort) Unpack(b *iovec.IoVec) error {
 	if err != nil {
 		return err
 	}
-	data := self.buf[:nr]
+	s := self.buf[:nr]
 	self.buf = self.buf[nr:]
-	*b = append(*b, data)
+	b.Take(s)
 	return nil
 }
 

@@ -11,7 +11,7 @@ import (
 type IoVec net.Buffers
 
 func FromSlice(s []byte) (v IoVec) {
-	v = append(v, s)
+	v.Take(s)
 	return
 }
 
@@ -30,9 +30,19 @@ func (self IoVec) AsOneSlice() []byte {
 	return b.Bytes()
 }
 
-func (self *IoVec) Append(s []byte) *IoVec {
+func (self *IoVec) Take(s []byte) *IoVec {
 	*self = append(*self, s)
 	return self
+}
+
+func (self *IoVec) Write(s []byte) (n int, err error) {
+	var b bytes.Buffer
+	n, err = b.Write(s)
+	if err != nil {
+		return
+	}
+	self.Take(b.Bytes())
+	return b.Len(), nil
 }
 
 func (self *IoVec) WriteTo(w io.Writer) (int64, error) {
