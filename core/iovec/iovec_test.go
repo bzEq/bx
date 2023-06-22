@@ -15,34 +15,34 @@ func TestLen(t *testing.T) {
 	}
 }
 
-func TestAsOneSlice(t *testing.T) {
+func TestConcat(t *testing.T) {
 	var v IoVec
 	v.Take([]byte("hello"))
 	v.Take([]byte("foo"))
-	if string(v.AsOneSlice()) != "hellofoo" {
+	if string(v.Concat()) != "hellofoo" {
 		t.Fail()
 	}
 }
 
-func TestAsOneSlice1(t *testing.T) {
+func TestConcat1(t *testing.T) {
 	var v IoVec
 	v.Take([]byte("hello"))
-	if string(v.AsOneSlice()) != "hello" {
+	if string(v.Concat()) != "hello" {
 		t.Fail()
 	}
 }
 
-func TestWriteAfterAsOneSlice(t *testing.T) {
+func TestWriteAfterConcat(t *testing.T) {
 	var v IoVec
 	v.Take(make([]byte, 1, 2))
-	s := v.AsOneSlice()
+	s := v.Concat()
 	s[0] = 'h'
 	s = append(s, '!')
 	s[0] = 'w'
-	if string(v.AsOneSlice()) == string(s) {
+	if string(v.Concat()) == string(s) {
 		t.Fail()
 	}
-	if v.AsOneSlice()[0] == 'w' {
+	if v.Concat()[0] == 'w' {
 		t.Fail()
 	}
 }

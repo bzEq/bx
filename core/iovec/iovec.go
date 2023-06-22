@@ -22,7 +22,7 @@ func (self IoVec) Len() (l int) {
 	return
 }
 
-func (self IoVec) AsOneSlice() []byte {
+func (self IoVec) Concat() []byte {
 	var b bytes.Buffer
 	for _, s := range self {
 		b.Write(s)
