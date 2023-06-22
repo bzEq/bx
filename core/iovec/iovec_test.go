@@ -71,3 +71,11 @@ func TestConsume1(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func TestFromSlice(t *testing.T) {
+	s := []byte("wtf")
+	v := FromSlice(s)
+	if string(v.Consume()) != "wtf" {
+		t.Fail()
+	}
+}
