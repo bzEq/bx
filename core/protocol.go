@@ -72,6 +72,6 @@ func (self *HTTPProtocol) Unpack(in *bufio.Reader, b *iovec.IoVec) error {
 	if _, err = io.ReadFull(req.Body, body); err != nil {
 		return err
 	}
-	*b = append(*b, body)
+	b.Take(body)
 	return nil
 }
