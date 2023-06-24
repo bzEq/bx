@@ -12,7 +12,7 @@ import (
 )
 
 type Protocol interface {
-	Pack(iovec.IoVec, *bufio.Writer) error
+	Pack(*iovec.IoVec, *bufio.Writer) error
 	Unpack(*bufio.Reader, *iovec.IoVec) error
 }
 
@@ -24,8 +24,8 @@ type ProtocolWithPass struct {
 	UP Pass
 }
 
-func (self *ProtocolWithPass) Pack(b iovec.IoVec, out *bufio.Writer) error {
-	err := self.PP.Run(&b)
+func (self *ProtocolWithPass) Pack(b *iovec.IoVec, out *bufio.Writer) error {
+	err := self.PP.Run(b)
 	if err != nil {
 		return err
 	}
@@ -44,8 +44,8 @@ const UNUSUAL_BUFFER_LENGTH_THRESHOLD = DEFAULT_BUFFER_SIZE * 2
 
 type HTTPProtocol struct{}
 
-func (self *HTTPProtocol) Pack(b iovec.IoVec, out *bufio.Writer) error {
-	req, err := http.NewRequest("POST", "/", &b)
+func (self *HTTPProtocol) Pack(b *iovec.IoVec, out *bufio.Writer) error {
+	req, err := http.NewRequest("POST", "/", b)
 	if err != nil {
 		return err
 	}
@@ -53,7 +53,7 @@ func (self *HTTPProtocol) Pack(b iovec.IoVec, out *bufio.Writer) error {
 	if req.GetBody == nil {
 		req.ContentLength = int64(b.Len())
 		req.GetBody = func() (io.ReadCloser, error) {
-			return io.NopCloser(&b), nil
+			return io.NopCloser(b), nil
 		}
 	}
 	return req.Write(out)

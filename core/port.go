@@ -17,7 +17,7 @@ const DEFAULT_BUFFER_SIZE = 64 << 10
 const DEFAULT_UDP_BUFFER_SIZE = 2 << 10
 
 type Port interface {
-	Pack(iovec.IoVec) error
+	Pack(*iovec.IoVec) error
 	Unpack(*iovec.IoVec) error
 }
 
@@ -36,7 +36,7 @@ func (self *NetPort) Unpack(b *iovec.IoVec) error {
 	return self.P.Unpack(self.rbuf, b)
 }
 
-func (self *NetPort) Pack(b iovec.IoVec) error {
+func (self *NetPort) Pack(b *iovec.IoVec) error {
 	if err := self.C.SetWriteDeadline(time.Now().Add(self.timeout)); err != nil {
 		return err
 	}
@@ -52,7 +52,7 @@ type RawNetPort struct {
 	buf     []byte
 }
 
-func (self *RawNetPort) Pack(b iovec.IoVec) error {
+func (self *RawNetPort) Pack(b *iovec.IoVec) error {
 	if err := self.C.SetWriteDeadline(time.Now().Add(self.timeout)); err != nil {
 		return err
 	}
@@ -88,7 +88,7 @@ func (self *SyncPort) Unpack(b *iovec.IoVec) error {
 	return self.Port.Unpack(b)
 }
 
-func (self *SyncPort) Pack(b iovec.IoVec) error {
+func (self *SyncPort) Pack(b *iovec.IoVec) error {
 	self.pmu.Lock()
 	defer self.pmu.Unlock()
 	return self.Port.Pack(b)

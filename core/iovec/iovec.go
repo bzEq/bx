@@ -10,9 +10,10 @@ import (
 
 type IoVec net.Buffers
 
-func FromSlice(s []byte) (v IoVec) {
+func FromSlice(s []byte) *IoVec {
+	var v IoVec
 	v.Take(s)
-	return
+	return &v
 }
 
 func (self IoVec) Len() (l int) {

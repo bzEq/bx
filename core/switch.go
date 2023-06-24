@@ -40,7 +40,7 @@ func (self *SimpleSwitch) switchTraffic(in, out Port) {
 			log.Println(err)
 			return
 		}
-		if err = out.Pack(b); err != nil {
+		if err = out.Pack(&b); err != nil {
 			log.Println(err)
 			return
 		}

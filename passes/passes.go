@@ -26,7 +26,7 @@ func WrapLegacyPass(p core.LegacyPass, b *iovec.IoVec) error {
 	if err != nil {
 		return err
 	}
-	*b = iovec.FromSlice(buf)
+	b.Take(buf)
 	return nil
 }
 
