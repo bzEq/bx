@@ -1,4 +1,5 @@
 #!/bin/bash
 
 sudo apt install golang git && \
-    env GO111MODULE=off go get -u github.com/bzEq/bx/i3
+    env GO111MODULE=off CXX=clang++ CGO_CXXFLAGS='-O3 -march=native' \
+        go get -u github.com/bzEq/bx/i3
