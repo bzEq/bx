@@ -246,6 +246,10 @@ func (self *DeRotateLeft) RunOnBytes(p []byte) ([]byte, error) {
 
 type LZ4Compressor struct{}
 
+func (self *LZ4Compressor) Run(b *iovec.IoVec) error {
+	return WrapLegacyPass(self, b)
+}
+
 func (self *LZ4Compressor) RunOnBytes(p []byte) ([]byte, error) {
 	out := &bytes.Buffer{}
 	zw := lz4.NewWriter(out)
@@ -258,6 +262,10 @@ func (self *LZ4Compressor) RunOnBytes(p []byte) ([]byte, error) {
 }
 
 type LZ4Decompressor struct{}
+
+func (self *LZ4Decompressor) Run(b *iovec.IoVec) error {
+	return WrapLegacyPass(self, b)
+}
 
 func (self *LZ4Decompressor) RunOnBytes(p []byte) ([]byte, error) {
 	zr := lz4.NewReader(bytes.NewBuffer(p))
