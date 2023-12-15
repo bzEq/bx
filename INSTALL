@@ -1,2 +1,2 @@
 #!/bin/bash
-go install github.com/bzEq/bx/i3@latest
+go install github.com/bzEq/bx/i3@main
