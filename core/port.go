@@ -4,6 +4,7 @@ package core
 
 import (
 	"bufio"
+	"log"
 	"net"
 	"sync"
 	"time"
@@ -50,6 +51,7 @@ type RawNetPort struct {
 	C       net.Conn
 	timeout time.Duration
 	buf     []byte
+	nr      int
 }
 
 func (self *RawNetPort) Pack(b *iovec.IoVec) error {
@@ -61,19 +63,32 @@ func (self *RawNetPort) Pack(b *iovec.IoVec) error {
 }
 
 func (self *RawNetPort) Unpack(b *iovec.IoVec) error {
-	if len(self.buf) < DEFAULT_UDP_BUFFER_SIZE {
-		self.buf = make([]byte, DEFAULT_BUFFER_SIZE)
+	const BUFFER_LIMIT = 1 << 20
+	l := len(self.buf)
+	log.Printf("Current buffer len: %d, Last read: %d\n", l, self.nr)
+	if l < self.nr {
+		l = self.nr * 2
 	}
-	if err := self.C.SetReadDeadline(time.Now().Add(self.timeout)); err != nil {
-		return err
+	if l < DEFAULT_UDP_BUFFER_SIZE {
+		l = DEFAULT_BUFFER_SIZE
 	}
-	nr, err := self.C.Read(self.buf)
+	if l > BUFFER_LIMIT {
+		l = BUFFER_LIMIT
+	}
+	if l > len(self.buf) {
+		self.buf = make([]byte, l)
+	}
+	err := self.C.SetReadDeadline(time.Now().Add(self.timeout))
 	if err != nil {
 		return err
 	}
-	s := self.buf[:nr]
-	self.buf = self.buf[nr:]
-	b.Take(s)
+	self.nr, err = self.C.Read(self.buf)
+	if err != nil {
+		self.nr = 0
+		return err
+	}
+	b.Take(self.buf[:self.nr])
+	self.buf = self.buf[self.nr:]
 	return nil
 }
 

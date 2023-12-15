@@ -40,7 +40,7 @@ func (self *ProtocolWithPass) Unpack(in *bufio.Reader, b *iovec.IoVec) error {
 	return self.UP.Run(b)
 }
 
-const UNUSUAL_BUFFER_LENGTH_THRESHOLD = DEFAULT_BUFFER_SIZE * 2
+const UNUSUAL_BUFFER_LENGTH_THRESHOLD = 64 << 20
 
 type HTTPProtocol struct{}
 
