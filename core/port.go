@@ -62,10 +62,10 @@ func (self *RawNetPort) Pack(b *iovec.IoVec) error {
 	return err
 }
 
-func (self *RawNetPort) Unpack(b *iovec.IoVec) error {
+func (self *RawNetPort) extendBuffer() {
 	const BUFFER_LIMIT = 1 << 20
 	l := len(self.buf)
-	log.Printf("Current buffer len: %d, Last read: %d\n", l, self.nr)
+	log.Printf("Current buffer length: %d, byte(s) read last time: %d\n", l, self.nr)
 	if l < self.nr {
 		l = self.nr * 2
 	}
@@ -78,6 +78,10 @@ func (self *RawNetPort) Unpack(b *iovec.IoVec) error {
 	if l > len(self.buf) {
 		self.buf = make([]byte, l)
 	}
+}
+
+func (self *RawNetPort) Unpack(b *iovec.IoVec) error {
+	self.extendBuffer()
 	err := self.C.SetReadDeadline(time.Now().Add(self.timeout))
 	if err != nil {
 		return err
