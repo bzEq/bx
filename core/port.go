@@ -4,7 +4,6 @@ package core
 
 import (
 	"bufio"
-	"log"
 	"net"
 	"sync"
 	"time"
@@ -65,7 +64,6 @@ func (self *RawNetPort) Pack(b *iovec.IoVec) error {
 func (self *RawNetPort) extendBuffer() {
 	const BUFFER_LIMIT = 1 << 20
 	l := len(self.buf)
-	log.Printf("Current buffer length: %d, byte(s) read last time: %d\n", l, self.nr)
 	if l < self.nr {
 		l = self.nr * 2
 	}
