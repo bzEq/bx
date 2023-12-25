@@ -18,12 +18,12 @@ import (
 type IntrinsicRelayer struct {
 	Listen         func(string, string) (net.Listener, error)
 	Local          string
+	LocalUDP       string
+	NumUDPMux      int
 	LocalHTTPProxy string
 	Dial           func(string, string) (net.Conn, error)
 	Next           []string
 	RelayProtocol  string
-	NumUDPMux      int
-	NoUDP          bool
 	udpAddr        *net.UDPAddr
 }
 
@@ -58,7 +58,7 @@ func (self *IntrinsicRelayer) startLocalHTTPProxy() error {
 }
 
 func (self *IntrinsicRelayer) startLocalUDPServer() error {
-	laddr, err := net.ResolveUDPAddr("udp", self.Local)
+	laddr, err := net.ResolveUDPAddr("udp", self.LocalUDP)
 	if err != nil {
 		return err
 	}
@@ -91,8 +91,12 @@ func (self *IntrinsicRelayer) startLocalUDPServer() error {
 	return nil
 }
 
+func (self *IntrinsicRelayer) IsEndPoint() bool {
+	return len(self.Next) == 0
+}
+
 func (self *IntrinsicRelayer) Run() {
-	if len(self.Next) != 0 && !self.NoUDP {
+	if !self.IsEndPoint() && self.LocalUDP != "" {
 		if err := self.startLocalUDPServer(); err != nil {
 			log.Println(err)
 			return
@@ -105,7 +109,7 @@ func (self *IntrinsicRelayer) Run() {
 	}
 	defer ln.Close()
 	// self.LocalHTTPProxy relies on socks proxy.
-	if len(self.Next) != 0 && self.LocalHTTPProxy != "" {
+	if !self.IsEndPoint() && self.LocalHTTPProxy != "" {
 		if err := self.startLocalHTTPProxy(); err != nil {
 			log.Println(err)
 			return
@@ -117,7 +121,7 @@ func (self *IntrinsicRelayer) Run() {
 			log.Println(err)
 			break
 		}
-		if len(self.Next) == 0 {
+		if self.IsEndPoint() {
 			go self.ServeAsEndRelayer(c)
 		} else {
 			go self.ServeAsLocalRelayer(c)

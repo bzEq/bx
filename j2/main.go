@@ -24,7 +24,6 @@ var options struct {
 	Local        string
 	Next         string
 	ProtocolName string
-	NumConn      int
 	UseTLS       bool
 }
 
