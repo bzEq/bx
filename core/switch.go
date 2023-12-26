@@ -35,12 +35,11 @@ func (self *SimpleSwitch) Run() {
 func (self *SimpleSwitch) switchTraffic(in, out Port) {
 	for {
 		var b iovec.IoVec
-		err := in.Unpack(&b)
-		if err != nil {
+		if err := in.Unpack(&b); err != nil {
 			log.Println(err)
 			return
 		}
-		if err = out.Pack(&b); err != nil {
+		if err := out.Pack(&b); err != nil {
 			log.Println(err)
 			return
 		}
