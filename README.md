@@ -1,4 +1,4 @@
-# BX
+# BX - ByteXchange
 A simple and fast L4 virtual switch.
 
 ## Install
