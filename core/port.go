@@ -62,20 +62,21 @@ func (self *RawNetPort) Pack(b *iovec.IoVec) error {
 }
 
 func (self *RawNetPort) growBuffer() {
-	const BUFFER_LIMIT = 1 << 20
 	l := len(self.buf)
+	// Ensure we have sufficient buffer for UDP transfer.
+	if l < DEFAULT_UDP_BUFFER_SIZE {
+		l = DEFAULT_UDP_BUFFER_SIZE * 2
+	}
 	if l < self.nr {
 		l = self.nr * 2
 	}
-	if l < DEFAULT_UDP_BUFFER_SIZE {
+	if l > DEFAULT_BUFFER_SIZE {
 		l = DEFAULT_BUFFER_SIZE
 	}
-	if l > BUFFER_LIMIT {
-		l = BUFFER_LIMIT
+	if l <= len(self.buf) {
+		return
 	}
-	if l > len(self.buf) {
-		self.buf = make([]byte, l)
-	}
+	self.buf = make([]byte, l)
 }
 
 func (self *RawNetPort) Unpack(b *iovec.IoVec) error {
