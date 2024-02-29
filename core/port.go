@@ -12,8 +12,8 @@ import (
 )
 
 const DEFAULT_TIMEOUT = 60 * 60
+const DEFAULT_BUFFER_SIZE = 1 << 20
 const DEFAULT_UDP_TIMEOUT = 60
-const DEFAULT_BUFFER_SIZE = 64 << 10
 const DEFAULT_UDP_BUFFER_SIZE = 2 << 10
 
 type Port interface {
