@@ -79,7 +79,7 @@ func (self *RawNetPort) growBuffer() {
 }
 
 func (self *RawNetPort) Unpack(b *iovec.IoVec) error {
-	self.growBuffer()
+	self.buf = make([]byte, DEFAULT_BUFFER_SIZE)
 	err := self.C.SetReadDeadline(time.Now().Add(self.timeout))
 	if err != nil {
 		return err
@@ -90,7 +90,6 @@ func (self *RawNetPort) Unpack(b *iovec.IoVec) error {
 		return err
 	}
 	b.Take(self.buf[:self.nr])
-	self.buf = self.buf[self.nr:]
 	return nil
 }
 
