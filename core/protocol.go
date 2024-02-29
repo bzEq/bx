@@ -40,8 +40,6 @@ func (self *ProtocolWithPass) Unpack(in *bufio.Reader, b *iovec.IoVec) error {
 	return self.UP.Run(b)
 }
 
-const UNUSUAL_BUFFER_LENGTH_THRESHOLD = 64 << 20
-
 type HTTPProtocol struct{}
 
 func (self *HTTPProtocol) Pack(b *iovec.IoVec, out *bufio.Writer) error {
@@ -65,7 +63,7 @@ func (self *HTTPProtocol) Unpack(in *bufio.Reader, b *iovec.IoVec) error {
 		return err
 	}
 	defer req.Body.Close()
-	if req.ContentLength < 0 || req.ContentLength > UNUSUAL_BUFFER_LENGTH_THRESHOLD {
+	if req.ContentLength < 0 || req.ContentLength > DEFAULT_BUFFER_LIMIT {
 		return errors.New("Invalid ContentLength")
 	}
 	body := make([]byte, req.ContentLength)

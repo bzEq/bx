@@ -12,7 +12,8 @@ import (
 )
 
 const DEFAULT_TIMEOUT = 60 * 60
-const DEFAULT_BUFFER_SIZE = 1 << 20
+const DEFAULT_BUFFER_SIZE = 64 << 10
+const DEFAULT_BUFFER_LIMIT = 64 << 20
 const DEFAULT_UDP_TIMEOUT = 60
 const DEFAULT_UDP_BUFFER_SIZE = 2 << 10
 
@@ -70,8 +71,8 @@ func (self *RawNetPort) growBuffer() {
 	if l < self.nr {
 		l = self.nr * 2
 	}
-	if l > DEFAULT_BUFFER_SIZE {
-		l = DEFAULT_BUFFER_SIZE
+	if l > DEFAULT_BUFFER_LIMIT {
+		l = DEFAULT_BUFFER_LIMIT
 	}
 	if l <= len(self.buf) {
 		return
