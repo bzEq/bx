@@ -7,14 +7,14 @@ extern "C" {
 
 void ByteSwap(uint8_t *__restrict__ dst, const uint8_t *__restrict__ src,
               size_t len) {
-  static const size_t n = sizeof(uint64_t);
-  uint64_t *__restrict__ u64_dst = reinterpret_cast<uint64_t *>(dst);
-  const uint64_t *__restrict__ u64_src =
-      reinterpret_cast<const uint64_t *>(src);
+  static constexpr size_t n = sizeof(uint64_t);
+  auto dst64 = reinterpret_cast<uint64_t *>(dst);
+  auto src64 = reinterpret_cast<const uint64_t *>(src);
   const size_t m = len / n;
+  const size_t r = m * n;
   for (size_t i = 0; i < m; ++i)
-    u64_dst[i] = __builtin_bswap64(u64_src[m - 1 - i]);
-  for (size_t i = m * n; i < len; ++i)
-    dst[i] = src[i];
+    dst64[i] = __builtin_bswap64(src64[m - 1 - i]);
+  for (size_t i = 0; i < len - r; ++i)
+    dst[r + i] = src[len - 1 - i];
 }
 }
