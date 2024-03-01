@@ -65,7 +65,11 @@ func (self *RawNetPort) Pack(b *iovec.IoVec) error {
 func (self *RawNetPort) growBuffer() {
 	l := len(self.buf)
 	if l == 0 {
-		l = self.nr * 2
+		if self.nr == 0 {
+			l = DEFAULT_BUFFER_SIZE
+		} else {
+			l = self.nr * 2
+		}
 	} else if l < self.nr/2 {
 		l = self.nr
 	}
