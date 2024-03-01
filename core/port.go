@@ -64,12 +64,14 @@ func (self *RawNetPort) Pack(b *iovec.IoVec) error {
 
 func (self *RawNetPort) growBuffer() {
 	l := len(self.buf)
+	if l == 0 {
+		l = self.nr * 2
+	} else if l < self.nr/2 {
+		l = self.nr
+	}
 	// Ensure we have sufficient buffer for UDP transfer.
 	if l < DEFAULT_UDP_BUFFER_SIZE {
-		l = DEFAULT_UDP_BUFFER_SIZE * 2
-	}
-	if l < self.nr {
-		l = self.nr * 2
+		l = DEFAULT_UDP_BUFFER_SIZE
 	}
 	if l > DEFAULT_BUFFER_LIMIT {
 		l = DEFAULT_BUFFER_LIMIT
