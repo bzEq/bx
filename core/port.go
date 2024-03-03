@@ -66,6 +66,7 @@ func (self *RawNetPort) growBuffer() {
 	l := len(self.buf)
 	if l == 0 {
 		if self.nr == 0 {
+			// If DEFAULT_BUFFER_SIZE is too small, times of buffer allocation will increase and thus hurt performance.
 			l = DEFAULT_BUFFER_SIZE
 		} else {
 			l = self.nr * 2
