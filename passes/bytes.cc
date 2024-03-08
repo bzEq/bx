@@ -16,7 +16,8 @@ void ByteSwap(uint8_t *__restrict__ dst, const uint8_t *__restrict__ src,
   const size_t r = m * n;
   for (size_t i = 0; i < m; ++i)
     dst64[i] = __builtin_bswap64(src64[m - 1 - i]);
-  std::swap(buf + r, buf + len);
+  for (size_t i = 0; i < len - r; ++i)
+    dst[r + i] = src[len - 1 - i];
 }
 
 void ByteSwapInPlace(uint8_t *__restrict__ buf, size_t len) {
