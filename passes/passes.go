@@ -182,7 +182,7 @@ func (self *RC4Dec) RunOnBytes(p []byte) ([]byte, error) {
 }
 
 type OBFSEncoder struct {
-	SimpleOBFS
+	FastOBFS
 }
 
 func (self *OBFSEncoder) Run(b *iovec.IoVec) error {
@@ -190,11 +190,11 @@ func (self *OBFSEncoder) Run(b *iovec.IoVec) error {
 }
 
 func (self *OBFSEncoder) RunOnBytes(p []byte) ([]byte, error) {
-	return self.SimpleOBFS.Encode(p)
+	return self.FastOBFS.Encode(p)
 }
 
 type OBFSDecoder struct {
-	SimpleOBFS
+	FastOBFS
 }
 
 func (self *OBFSDecoder) Run(b *iovec.IoVec) error {
@@ -202,7 +202,7 @@ func (self *OBFSDecoder) Run(b *iovec.IoVec) error {
 }
 
 func (self *OBFSDecoder) RunOnBytes(p []byte) ([]byte, error) {
-	return self.SimpleOBFS.Decode(p)
+	return self.FastOBFS.Decode(p)
 }
 
 type RotateLeft struct{}

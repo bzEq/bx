@@ -132,6 +132,18 @@ func TestOBFS(t *testing.T) {
 	}
 }
 
+func TestFastOBFS(t *testing.T) {
+	var f FastOBFS
+	const s = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	b, err := f.Encode([]byte(s))
+	b, err = f.Decode(b)
+	if string(b) != s || err != nil {
+		t.Log(err)
+		t.Log(b)
+		t.Fail()
+	}
+}
+
 func TestRotateLeft(t *testing.T) {
 	pm := core.NewLegacyPassManager()
 	pm.AddPass(&RotateLeft{})

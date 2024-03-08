@@ -17,4 +17,21 @@ void ByteSwap(uint8_t *__restrict__ dst, const uint8_t *__restrict__ src,
   for (size_t i = 0; i < len - r; ++i)
     dst[r + i] = src[len - 1 - i];
 }
+
+void ByteSwapInPlace(uint8_t *__restrict__ buf, size_t len) {
+  static constexpr size_t n = sizeof(uint64_t);
+  auto buf64 = reinterpret_cast<uint64_t *>(buf);
+  const size_t m = len / n;
+  const size_t r = m * n;
+  for (size_t i = 0; i < m / 2; ++i) {
+    auto tmp = buf64[i];
+    buf64[i] = __builtin_bswap64(buf64[m - 1 - i]);
+    buf64[m - 1 - i] = __builtin_bswap64(tmp);
+  }
+  for (size_t i = 0; i < (len - r) / 2; ++i) {
+    auto tmp = buf[r + i];
+    buf[r + i] = buf[len - 1 - i];
+    buf[len - 1 - i] = tmp;
+  }
+}
 }
