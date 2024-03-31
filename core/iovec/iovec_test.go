@@ -41,6 +41,19 @@ func TestDrop(t *testing.T) {
 	}
 }
 
+func TestDrop2(t *testing.T) {
+	var v IoVec
+	v.Take([]byte("hello"))
+	v.Take([]byte("bar"))
+	if err := v.Drop(6); err != nil {
+		t.Fail()
+	}
+	s := string(v.Consume())
+	if s != "hellob" {
+		t.Fail()
+	}
+}
+
 func TestConcat(t *testing.T) {
 	var v IoVec
 	v.Take([]byte("hello"))

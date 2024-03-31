@@ -8,6 +8,7 @@ import (
 	crand "crypto/rand"
 	"encoding/binary"
 	"github.com/bzEq/bx/core"
+	"github.com/bzEq/bx/core/iovec"
 	"math/rand"
 	"testing"
 )
@@ -126,6 +127,27 @@ func TestOBFS(t *testing.T) {
 	const s = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	r, err := pm.RunOnBytes([]byte(s))
 	if string(r) != s || err != nil {
+		t.Log(err)
+		t.Log(r)
+		t.Fail()
+	}
+}
+
+func TestOBFS1(t *testing.T) {
+	pm := core.NewPassManager()
+	pm.AddPass(&OBFSEncoder{})
+	pm.AddPass(&OBFSDecoder{})
+	const s = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	var v iovec.IoVec
+	v.Take([]byte(s))
+	v.Take([]byte(s))
+	if v.Len() != 2*len(s) {
+		t.Fail()
+	}
+	err := pm.Run(&v)
+	v.Drop(len(s))
+	r := string(v.Consume())
+	if r != s || err != nil {
 		t.Log(err)
 		t.Log(r)
 		t.Fail()
