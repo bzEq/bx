@@ -4,6 +4,7 @@ package iovec
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"net"
 )
@@ -66,4 +67,42 @@ func (self *IoVec) Consume() []byte {
 		panic(err)
 	}
 	return b.Bytes()
+}
+
+func (self IoVec) At(i int) (byte, error) {
+	c := 0
+	for _, v := range self {
+		if i >= c && i < c+len(v) {
+			return v[i-c], nil
+		}
+		c += len(v)
+	}
+	return 0, fmt.Errorf("Index %d out of bound", i)
+}
+
+func (self IoVec) Peek(i int) ([]byte, error) {
+	c := 0
+	for _, v := range self {
+		if i >= c && i < c+len(v) {
+			return v, nil
+		}
+		c += len(v)
+	}
+	return nil, fmt.Errorf("Index %d out of bound", i)
+}
+
+func (self *IoVec) Drop(i int) error {
+	c := 0
+	for k, v := range *self {
+		if i >= c && i < c+len(v) {
+			v = v[:i-c]
+			if len(v) != 0 {
+				*self = (*self)[:k+1]
+			} else {
+				*self = (*self)[:k]
+			}
+			return nil
+		}
+	}
+	return fmt.Errorf("Index %d out of bound", i)
 }
