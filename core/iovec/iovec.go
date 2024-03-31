@@ -33,6 +33,9 @@ func (self IoVec) Concat() []byte {
 }
 
 func (self *IoVec) Take(s []byte) *IoVec {
+	if len(s) == 0 {
+		return self
+	}
 	*self = append(*self, s)
 	return self
 }
@@ -69,6 +72,31 @@ func (self *IoVec) Consume() []byte {
 	return b.Bytes()
 }
 
+func (self IoVec) LastByte() (byte, error) {
+	l := len(self)
+	if l == 0 {
+		return 0, fmt.Errorf("This IoVec is empty")
+	}
+	k := len(self[l-1])
+	return self[l-1][k-1], nil
+}
+
+func (self *IoVec) Drop(s int) error {
+	l := len(*self)
+	c := 0
+	for i := l - 1; i >= 0; i-- {
+		v := (*self)[i]
+		vl := len(v)
+		if c+vl >= s {
+			(*self) = (*self)[:i]
+			self.Take(v[:c+vl-s])
+			return nil
+		}
+		c += vl
+	}
+	return fmt.Errorf("Unable to drop %d bytes", s)
+}
+
 func (self IoVec) At(i int) (byte, error) {
 	c := 0
 	for _, v := range self {
@@ -91,17 +119,19 @@ func (self IoVec) Peek(i int) ([]byte, error) {
 	return nil, fmt.Errorf("Index %d out of bound", i)
 }
 
-func (self *IoVec) Drop(i int) error {
+func (self *IoVec) Split(i int) (tail IoVec) {
 	c := 0
 	for k, v := range *self {
 		if i >= c && i < c+len(v) {
-			*self = (*self)[:k]
-			if i-c != 0 {
-				*self = append(*self, v[:i-c])
+			tail.Take(v[i-c:])
+			if len((*self)[k+1:]) != 0 {
+				tail = append(tail, (*self)[k+1:]...)
 			}
-			return nil
+			*self = (*self)[:k]
+			self.Take(v[:i-c])
+			return
 		}
 		c += len(v)
 	}
-	return fmt.Errorf("Index %d out of bound", i)
+	return
 }

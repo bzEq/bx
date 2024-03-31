@@ -208,12 +208,11 @@ type OBFSDecoder struct {
 }
 
 func (self *OBFSDecoder) Run(b *iovec.IoVec) error {
-	l := b.Len()
-	t, err := b.At(l - 1)
+	t, err := b.LastByte()
 	if err != nil {
 		return err
 	}
-	if err := b.Drop(l - (1 + int(t))); err != nil {
+	if err := b.Drop(1 + int(t)); err != nil {
 		return err
 	}
 	return WrapLegacyPass(self, b)

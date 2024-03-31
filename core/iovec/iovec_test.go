@@ -32,7 +32,7 @@ func TestDrop(t *testing.T) {
 	var v IoVec
 	v.Take([]byte("hello"))
 	v.Take([]byte("bar"))
-	if err := v.Drop(5); err != nil {
+	if err := v.Drop(3); err != nil {
 		t.Fail()
 	}
 	s := string(v.Consume())
@@ -45,11 +45,71 @@ func TestDrop2(t *testing.T) {
 	var v IoVec
 	v.Take([]byte("hello"))
 	v.Take([]byte("bar"))
-	if err := v.Drop(6); err != nil {
+	if err := v.Drop(2); err != nil {
 		t.Fail()
 	}
 	s := string(v.Consume())
 	if s != "hellob" {
+		t.Fail()
+	}
+}
+
+func TestSplit(t *testing.T) {
+	var v IoVec
+	v.Take([]byte("hello"))
+	v.Take([]byte("bar"))
+	tail := v.Split(0)
+	s := string(tail.Consume())
+	if s != "hellobar" {
+		t.Fail()
+	}
+	sv := string(v.Consume())
+	if sv != "" {
+		t.Fail()
+	}
+}
+
+func TestSplit1(t *testing.T) {
+	var v IoVec
+	v.Take([]byte("hello"))
+	v.Take([]byte("bar"))
+	tail := v.Split(5)
+	s := string(tail.Consume())
+	if s != "bar" {
+		t.Fail()
+	}
+	sv := string(v.Consume())
+	if sv != "hello" {
+		t.Fail()
+	}
+}
+
+func TestSplit2(t *testing.T) {
+	var v IoVec
+	v.Take([]byte("hello"))
+	v.Take([]byte("bar"))
+	tail := v.Split(6)
+	s := string(tail.Consume())
+	if s != "ar" {
+		t.Fail()
+	}
+	sv := string(v.Consume())
+	if sv != "hellob" {
+		t.Fail()
+	}
+}
+
+func TestSplit3(t *testing.T) {
+	var v IoVec
+	v.Take([]byte("hello"))
+	v.Take([]byte("bar"))
+	tail := v.Split(3)
+	s := string(tail.Consume())
+	if s != "lobar" {
+		t.Fail()
+	}
+	sv := string(v.Consume())
+	if sv != "hel" {
 		t.Fail()
 	}
 }
