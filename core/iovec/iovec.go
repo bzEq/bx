@@ -108,17 +108,6 @@ func (self IoVec) At(i int) (byte, error) {
 	return 0, fmt.Errorf("Index %d out of bound", i)
 }
 
-func (self IoVec) Peek(i int) ([]byte, error) {
-	c := 0
-	for _, v := range self {
-		if i >= c && i < c+len(v) {
-			return v, nil
-		}
-		c += len(v)
-	}
-	return nil, fmt.Errorf("Index %d out of bound", i)
-}
-
 func (self *IoVec) Split(i int) (tail IoVec) {
 	c := 0
 	for k, v := range *self {
