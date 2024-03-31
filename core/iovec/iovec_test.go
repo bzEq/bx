@@ -15,6 +15,32 @@ func TestLen(t *testing.T) {
 	}
 }
 
+func TestAt(t *testing.T) {
+	var v IoVec
+	v.Take([]byte("hello"))
+	v.Take([]byte("bar"))
+	b, err := v.At(v.Len() - 1)
+	if err != nil {
+		t.Fail()
+	}
+	if b != byte('r') {
+		t.Fail()
+	}
+}
+
+func TestDrop(t *testing.T) {
+	var v IoVec
+	v.Take([]byte("hello"))
+	v.Take([]byte("bar"))
+	if err := v.Drop(5); err != nil {
+		t.Fail()
+	}
+	s := string(v.Consume())
+	if s != "hello" {
+		t.Fail()
+	}
+}
+
 func TestConcat(t *testing.T) {
 	var v IoVec
 	v.Take([]byte("hello"))

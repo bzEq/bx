@@ -95,14 +95,13 @@ func (self *IoVec) Drop(i int) error {
 	c := 0
 	for k, v := range *self {
 		if i >= c && i < c+len(v) {
-			v = v[:i-c]
-			if len(v) != 0 {
-				*self = (*self)[:k+1]
-			} else {
-				*self = (*self)[:k]
+			*self = (*self)[:k]
+			if i-c != 0 {
+				*self = append(*self, v[:i-c])
 			}
 			return nil
 		}
+		c += len(v)
 	}
 	return fmt.Errorf("Index %d out of bound", i)
 }
