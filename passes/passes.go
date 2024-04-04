@@ -189,10 +189,10 @@ func (self *OBFSEncoder) Run(b *iovec.IoVec) error {
 	if err := WrapLegacyPass(self, b); err != nil {
 		return err
 	}
-	l := (rand.Uint64()%64 + 7) & (uint64(63) << 3)
+	l := (rand.Uint32() % 64) & (uint32(63) << 2)
 	var padding bytes.Buffer
-	for i := uint64(0); i < l/8; i++ {
-		binary.Write(&padding, binary.BigEndian, rand.Uint64())
+	for i := uint32(0); i < l/4; i++ {
+		binary.Write(&padding, binary.BigEndian, rand.Uint32())
 	}
 	padding.WriteByte(byte(l))
 	b.Take(padding.Bytes())
