@@ -134,7 +134,7 @@ func TestOBFS(t *testing.T) {
 }
 
 func TestOBFS1(t *testing.T) {
-	pm := core.NewPassManager()
+	pm := &core.PassManager{}
 	pm.AddPass(&TailPaddingEncoder{})
 	pm.AddPass(&OBFSEncoder{})
 	pm.AddPass(&OBFSDecoder{})
