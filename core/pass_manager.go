@@ -29,11 +29,7 @@ func (self *PassManager) Run(b *iovec.IoVec) (err error) {
 	return
 }
 
-func NewPassManager() *PassManager {
-	return &PassManager{}
-}
-
-func NewPassManagerWithPasses(passes []Pass) *PassManager {
+func NewPassManager(passes []Pass) *PassManager {
 	return &PassManager{
 		passes,
 	}
@@ -50,7 +46,7 @@ func (self *PackUnpackPassManagerBuilder) AddPairedPasses(pack Pass, unpack Pass
 }
 
 func (self *PackUnpackPassManagerBuilder) BuildPackPassManager() *PassManager {
-	return NewPassManagerWithPasses(self.packPasses)
+	return NewPassManager(self.packPasses)
 }
 
 func (self *PackUnpackPassManagerBuilder) BuildUnpackPassManager() *PassManager {
@@ -58,9 +54,5 @@ func (self *PackUnpackPassManagerBuilder) BuildUnpackPassManager() *PassManager 
 	for i := 0; i < n/2; i++ {
 		self.unpackPasses[i], self.unpackPasses[n-i-1] = self.unpackPasses[n-i-1], self.unpackPasses[i]
 	}
-	return NewPassManagerWithPasses(self.unpackPasses)
-}
-
-func NewPackUnpackPassManagerBuilder() *PackUnpackPassManagerBuilder {
-	return &PackUnpackPassManagerBuilder{}
+	return NewPassManager(self.unpackPasses)
 }
