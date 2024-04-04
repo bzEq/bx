@@ -9,8 +9,8 @@ import (
 
 func createPackUnpackPassManagerBuilder() *core.PackUnpackPassManagerBuilder {
 	pmb := core.NewPackUnpackPassManagerBuilder()
-	pmb.AddPairedPasses(&passes.OBFSEncoder{}, &passes.OBFSDecoder{})
 	pmb.AddPairedPasses(&passes.TailPaddingEncoder{}, &passes.TailPaddingDecoder{})
+	pmb.AddPairedPasses(&passes.OBFSEncoder{}, &passes.OBFSDecoder{})
 	return pmb
 }
 

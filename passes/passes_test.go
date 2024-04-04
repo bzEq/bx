@@ -135,10 +135,10 @@ func TestOBFS(t *testing.T) {
 
 func TestOBFS1(t *testing.T) {
 	pm := core.NewPassManager()
-	pm.AddPass(&OBFSEncoder{})
 	pm.AddPass(&TailPaddingEncoder{})
-	pm.AddPass(&TailPaddingDecoder{})
+	pm.AddPass(&OBFSEncoder{})
 	pm.AddPass(&OBFSDecoder{})
+	pm.AddPass(&TailPaddingDecoder{})
 	const s = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	var v iovec.IoVec
 	v.Take([]byte(s))
