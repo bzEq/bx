@@ -181,14 +181,9 @@ func (self *RC4Dec) RunOnBytes(p []byte) ([]byte, error) {
 	return buf.Bytes(), err
 }
 
-type OBFSEncoder struct {
-	FastOBFS
-}
+type TailPaddingEncoder struct{}
 
-func (self *OBFSEncoder) Run(b *iovec.IoVec) error {
-	if err := WrapLegacyPass(self, b); err != nil {
-		return err
-	}
+func (self *TailPaddingEncoder) Run(b *iovec.IoVec) error {
 	l := (rand.Uint32() % 64) & (uint32(63) << 2)
 	var padding bytes.Buffer
 	for i := uint32(0); i < l/4; i++ {
@@ -197,6 +192,24 @@ func (self *OBFSEncoder) Run(b *iovec.IoVec) error {
 	padding.WriteByte(byte(l))
 	b.Take(padding.Bytes())
 	return nil
+}
+
+type TailPaddingDecoder struct{}
+
+func (self *TailPaddingDecoder) Run(b *iovec.IoVec) error {
+	t, err := b.LastByte()
+	if err != nil {
+		return err
+	}
+	return b.Drop(1 + int(t))
+}
+
+type OBFSEncoder struct {
+	FastOBFS
+}
+
+func (self *OBFSEncoder) Run(b *iovec.IoVec) error {
+	return WrapLegacyPass(self, b)
 }
 
 func (self *OBFSEncoder) RunOnBytes(p []byte) ([]byte, error) {
@@ -208,13 +221,6 @@ type OBFSDecoder struct {
 }
 
 func (self *OBFSDecoder) Run(b *iovec.IoVec) error {
-	t, err := b.LastByte()
-	if err != nil {
-		return err
-	}
-	if err := b.Drop(1 + int(t)); err != nil {
-		return err
-	}
 	return WrapLegacyPass(self, b)
 }
 
