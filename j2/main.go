@@ -21,10 +21,10 @@ import (
 )
 
 var options struct {
-	Local        string
-	Next         string
-	ProtocolName string
-	UseTLS       bool
+	Local    string
+	Next     string
+	Protocol string
+	UseTLS   bool
 }
 
 func startRelayers() {
@@ -43,12 +43,12 @@ func startRelayers() {
 func startRelayer(localAddr string) {
 	r := &relayer.SocksRelayer{}
 	r.Local = localAddr
-	r.RelayProtocol = options.ProtocolName
+	r.RelayProtocol = options.Protocol
 	if options.Next != "" {
 		r.Next = strings.Split(options.Next, ",")
 	}
 	if options.UseTLS && len(r.Next) != 0 {
-		config := &tls.Config{InsecureSkipVerify: true, NextProtos: []string{options.ProtocolName}}
+		config := &tls.Config{InsecureSkipVerify: true, NextProtos: []string{options.Protocol}}
 		r.Dial = func(network, address string) (net.Conn, error) {
 			return tls.Dial(network, address, config)
 		}
@@ -58,7 +58,7 @@ func startRelayer(localAddr string) {
 		}
 	}
 	if options.UseTLS && len(r.Next) == 0 {
-		config, err := core.CreateBarebonesTLSConfig(options.ProtocolName)
+		config, err := core.CreateBarebonesTLSConfig(options.Protocol)
 		if err != nil {
 			log.Println(err)
 			return
@@ -79,9 +79,9 @@ func main() {
 	binary.Read(crand.Reader, binary.BigEndian, &seed)
 	rand.Seed(seed)
 	var debug bool
-	flag.StringVar(&options.Local, "c", "localhost:1080", "Addresses of local relayers")
-	flag.StringVar(&options.Next, "r", "", "Address of next-hop relayer")
-	flag.StringVar(&options.ProtocolName, "p", "", "Name of relay protocol")
+	flag.StringVar(&options.Local, "l", "localhost:1080", "Addresses of local relayers")
+	flag.StringVar(&options.Next, "n", "", "Address of next-hop relayer")
+	flag.StringVar(&options.Protocol, "proto", "", "Name of relay protocol")
 	flag.BoolVar(&options.UseTLS, "tls", false, "Use TLS")
 	flag.BoolVar(&debug, "debug", false, "Enable debug logging")
 	flag.Parse()
