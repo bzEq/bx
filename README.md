@@ -8,7 +8,7 @@ GOPROXY=direct go install github.com/bzEq/bx/i3@main
 ```
 ### Optimized install
 ```shell
-GOPROXY=direct CXX=clang++ CGO_CXXFLAGS='-march=native' CGO_LDFLAGS='-lmimalloc' \
+GOPROXY=direct CXX=clang++ CGO_CXXFLAGS='-march=native -O3' \
     go install github.com/bzEq/bx/i3@main
 ```
 
