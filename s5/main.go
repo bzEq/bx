@@ -13,7 +13,7 @@ import (
 
 func main() {
 	var localAddr string
-	flag.StringVar(&localAddr, "c", "localhost:1080", "Address of local server")
+	flag.StringVar(&localAddr, "l", "localhost:1080", "Address of local server")
 	flag.Parse()
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	udpAddrChan := make(chan *net.UDPAddr)
