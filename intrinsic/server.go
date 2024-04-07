@@ -29,7 +29,7 @@ type TCPRequest struct {
 }
 
 type UDPMessage struct {
-	Id   uint64
+	Id   core.RouteId
 	Addr string
 	Data []byte
 }

@@ -61,7 +61,7 @@ func (self *ClientContext) dialUDP(network, addr string) (net.Conn, error) {
 		id := disp.NewEntry(addr)
 		defer disp.DeleteEntry(id)
 		cp := core.NewSyncPortWithTimeout(c, nil, core.DEFAULT_UDP_TIMEOUT)
-		r, err := router.NewRoute(core.RouteId(id), cp)
+		r, err := router.NewRoute(id, cp)
 		if err != nil {
 			log.Println(err)
 			return
@@ -184,7 +184,7 @@ func (self *UDPDispatcher) Encode(id core.RouteId, data *iovec.IoVec) error {
 	if !in {
 		return fmt.Errorf("Remote address of RouteId #%d doesn't exist", id)
 	}
-	msg := UDPMessage{Id: uint64(id), Addr: raddr, Data: data.Consume()}
+	msg := UDPMessage{Id: id, Addr: raddr, Data: data.Consume()}
 	var buf bytes.Buffer
 	enc := gob.NewEncoder(&buf)
 	if err := enc.Encode(&msg); err != nil {
@@ -201,5 +201,5 @@ func (self *UDPDispatcher) Decode(data *iovec.IoVec) (core.RouteId, error) {
 		return core.RouteId(^uint64(0)), err
 	}
 	data.Take(msg.Data)
-	return core.RouteId(msg.Id), nil
+	return msg.Id, nil
 }
