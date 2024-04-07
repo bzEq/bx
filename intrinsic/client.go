@@ -61,7 +61,7 @@ func (self *ClientContext) dialUDP(network, addr string) (net.Conn, error) {
 		id := disp.NewEntry(addr)
 		defer disp.DeleteEntry(id)
 		cp := core.NewSyncPortWithTimeout(c, nil, core.DEFAULT_UDP_TIMEOUT)
-		r, err := router.NewRoute(core.RouteID(id), cp)
+		r, err := router.NewRoute(core.RouteId(id), cp)
 		if err != nil {
 			log.Println(err)
 			return
@@ -165,24 +165,24 @@ func (self *ClientContext) getOrCreateRouter() (*core.SimpleRouter, error) {
 }
 
 type UDPDispatcher struct {
-	t core.Map[core.RouteID, string]
+	t core.Map[core.RouteId, string]
 	c uint64
 }
 
-func (self *UDPDispatcher) NewEntry(addr string) core.RouteID {
-	id := core.RouteID(atomic.AddUint64(&self.c, 1))
+func (self *UDPDispatcher) NewEntry(addr string) core.RouteId {
+	id := core.RouteId(atomic.AddUint64(&self.c, 1))
 	self.t.Store(id, addr)
 	return id
 }
 
-func (self *UDPDispatcher) DeleteEntry(id core.RouteID) {
+func (self *UDPDispatcher) DeleteEntry(id core.RouteId) {
 	self.t.Delete(id)
 }
 
-func (self *UDPDispatcher) Encode(id core.RouteID, data *iovec.IoVec) error {
+func (self *UDPDispatcher) Encode(id core.RouteId, data *iovec.IoVec) error {
 	raddr, in := self.t.Load(id)
 	if !in {
-		return fmt.Errorf("Remote address of RouteID #%d doesn't exist", id)
+		return fmt.Errorf("Remote address of RouteId #%d doesn't exist", id)
 	}
 	msg := UDPMessage{Id: uint64(id), Addr: raddr, Data: data.Consume()}
 	var buf bytes.Buffer
@@ -194,12 +194,12 @@ func (self *UDPDispatcher) Encode(id core.RouteID, data *iovec.IoVec) error {
 	return nil
 }
 
-func (self *UDPDispatcher) Decode(data *iovec.IoVec) (core.RouteID, error) {
+func (self *UDPDispatcher) Decode(data *iovec.IoVec) (core.RouteId, error) {
 	dec := gob.NewDecoder(bytes.NewBuffer(data.Consume()))
 	var msg UDPMessage
 	if err := dec.Decode(&msg); err != nil {
-		return core.RouteID(^uint64(0)), err
+		return core.RouteId(^uint64(0)), err
 	}
 	data.Take(msg.Data)
-	return core.RouteID(msg.Id), nil
+	return core.RouteId(msg.Id), nil
 }

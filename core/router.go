@@ -9,11 +9,11 @@ import (
 	"github.com/bzEq/bx/core/iovec"
 )
 
-type RouteID uint64
+type RouteId uint64
 
 type Codec interface {
-	Encode(RouteID, *iovec.IoVec) error
-	Decode(*iovec.IoVec) (RouteID, error)
+	Encode(RouteId, *iovec.IoVec) error
+	Decode(*iovec.IoVec) (RouteId, error)
 }
 
 type RouteInfo struct {
@@ -24,10 +24,10 @@ type RouteInfo struct {
 type SimpleRouter struct {
 	P      *SyncPort
 	C      Codec
-	routes Map[RouteID, *RouteInfo]
+	routes Map[RouteId, *RouteInfo]
 }
 
-func (self *SimpleRouter) route(id RouteID, ri *RouteInfo) {
+func (self *SimpleRouter) route(id RouteId, ri *RouteInfo) {
 	for {
 		var b iovec.IoVec
 		err := ri.P.Unpack(&b)
@@ -47,7 +47,7 @@ func (self *SimpleRouter) route(id RouteID, ri *RouteInfo) {
 	}
 }
 
-func (self *SimpleRouter) NewRoute(id RouteID, P *SyncPort) (*RouteInfo, error) {
+func (self *SimpleRouter) NewRoute(id RouteId, P *SyncPort) (*RouteInfo, error) {
 	ri := &RouteInfo{P: P, Err: make(chan error)}
 	if v, in := self.routes.LoadOrStore(id, ri); in {
 		return v, fmt.Errorf("Route #%d already exists", id)
