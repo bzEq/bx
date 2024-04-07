@@ -46,26 +46,26 @@ func (self *ReadWriterWithTimeout) Write(b []byte) (int, error) {
 }
 
 type EventRecorder struct {
-	t       uint64
-	records sync.Map
+	clock   uint64
+	records Map[string, uint64]
 }
 
 func (self *EventRecorder) HappenedBefore(a, b string) bool {
-	va, in := self.records.Load(a)
+	ta, in := self.records.Load(a)
 	if !in {
 		return false
 	}
-	vb, in := self.records.Load(b)
+	tb, in := self.records.Load(b)
 	if !in {
 		return false
 	}
-	return va.(uint64) < vb.(uint64)
+	return ta < tb
 }
 
 func (self *EventRecorder) AddRecord(e string) uint64 {
-	et := atomic.AddUint64(&self.t, 1)
-	v, _ := self.records.LoadOrStore(e, et)
-	return v.(uint64)
+	t := atomic.AddUint64(&self.clock, 1)
+	self.records.LoadOrStore(e, t)
+	return t
 }
 
 type MonoActor struct {
@@ -81,12 +81,12 @@ func (self *MonoActor) prepare(t uint64) bool {
 	return false
 }
 
-func (self *MonoActor) Do(t uint64, act func()) {
+func (self *MonoActor) Do(t uint64, doit func(uint64)) {
 	self.prepare(t)
 	self.committed.L.Lock()
 	if t == self.propose {
-		// `act` should not panic!
-		act()
+		// doit should not panic!
+		doit(t)
 		self.commit = t
 		self.committed.L.Unlock()
 		self.committed.Broadcast()
