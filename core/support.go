@@ -140,8 +140,33 @@ func (self *Map[K, V]) LoadOrStore(key K, value V) (actual V, loaded bool) {
 	return a.(V), loaded
 }
 
-func (self *Map[K, V]) Range(f func(key K, value V) bool) {
+func (self *Map[K, V]) Range(f func(K, V) bool) {
 	self.m.Range(func(key, value any) bool { return f(key.(K), value.(V)) })
 }
 
 func (self *Map[K, V]) Store(key K, value V) { self.m.Store(key, value) }
+
+func (self *Map[K, V]) Size() int {
+	return SyncMapSize(&self.m)
+}
+
+type Set[V comparable] struct {
+	m Map[V, bool]
+}
+
+func (self *Set[V]) Add(v V) bool {
+	_, in := self.m.LoadOrStore(v, true)
+	return in
+}
+
+func (self *Set[V]) Delete(v V) {
+	self.m.Delete(v)
+}
+
+func (self *Set[V]) Size() int {
+	return self.m.Size()
+}
+
+func (self *Set[V]) Range(f func(V) bool) {
+	self.m.Range(func(v V, _ bool) bool { return f(v) })
+}

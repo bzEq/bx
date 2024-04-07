@@ -23,7 +23,7 @@ type ClientContext struct {
 	Next         string
 	InternalDial func(network string, addr string) (net.Conn, error)
 
-	routers sync.Map
+	routers core.Set[*core.SimpleRouter]
 }
 
 func (self *ClientContext) Init() {
@@ -105,7 +105,7 @@ func (self *ClientContext) dialTCP(network, addr string) (net.Conn, error) {
 }
 
 func (self *ClientContext) getOrCreateRouter() (*core.SimpleRouter, error) {
-	n := core.SyncMapSize(&self.routers)
+	n := self.routers.Size()
 	var wg sync.WaitGroup
 	for i := n; i < self.Limit; i++ {
 		wg.Add(1)
@@ -120,7 +120,7 @@ func (self *ClientContext) getOrCreateRouter() (*core.SimpleRouter, error) {
 				P: core.NewSyncPort(c, self.GetProtocol()),
 				C: &UDPDispatcher{},
 			}
-			self.routers.Store(router, true)
+			self.routers.Add(router)
 			// Prepare UDP proxy.
 			var buf bytes.Buffer
 			enc := gob.NewEncoder(&buf)
@@ -143,16 +143,16 @@ func (self *ClientContext) getOrCreateRouter() (*core.SimpleRouter, error) {
 		}()
 	}
 	wg.Wait()
-	n = core.SyncMapSize(&self.routers)
+	n = self.routers.Size()
 	if n == 0 {
 		return nil, fmt.Errorf("No router is available")
 	}
 	chosen := rand.Uint64() % uint64(n)
 	i := uint64(0)
 	var res *core.SimpleRouter
-	self.routers.Range(func(r, _ interface{}) bool {
+	self.routers.Range(func(r *core.SimpleRouter) bool {
 		if i == chosen {
-			res = r.(*core.SimpleRouter)
+			res = r
 			return false
 		}
 		i++
