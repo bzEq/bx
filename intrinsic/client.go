@@ -7,10 +7,8 @@ import (
 	"encoding/gob"
 	"fmt"
 	"log"
-	"math/rand"
 	"net"
 	"strings"
-	"sync"
 	"sync/atomic"
 
 	"github.com/bzEq/bx/core"
@@ -18,15 +16,16 @@ import (
 )
 
 type ClientContext struct {
-	GetProtocol  func() core.Protocol
+	GetProtocol func() core.Protocol
+	// Deprecated.
 	Limit        int
 	Next         string
 	InternalDial func(network string, addr string) (net.Conn, error)
 
-	routers core.Set[*core.SimpleRouter]
+	router *core.SimpleRouter
 }
 
-func (self *ClientContext) Init() {
+func (self *ClientContext) Init() error {
 	if self.GetProtocol == nil {
 		self.GetProtocol = func() core.Protocol {
 			return nil
@@ -35,6 +34,34 @@ func (self *ClientContext) Init() {
 	if self.InternalDial == nil {
 		self.InternalDial = net.Dial
 	}
+	// Launch router.
+	routerReady := make(chan error)
+	go func() {
+		c, err := self.InternalDial("tcp", self.Next)
+		if err != nil {
+			routerReady <- err
+			return
+		}
+		defer c.Close()
+		self.router = &core.SimpleRouter{
+			P: core.NewSyncPort(c, self.GetProtocol()),
+			C: &UDPDispatcher{},
+		}
+		var buf bytes.Buffer
+		enc := gob.NewEncoder(&buf)
+		i := Intrinsic{Func: RELAY_UDP}
+		if err := enc.Encode(&i); err != nil {
+			routerReady <- err
+			return
+		}
+		if err := self.router.P.Pack(iovec.FromSlice(buf.Bytes())); err != nil {
+			routerReady <- err
+			return
+		}
+		routerReady <- nil
+		self.router.Run()
+	}()
+	return <-routerReady
 }
 
 func (self *ClientContext) Dial(network string, addr string) (net.Conn, error) {
@@ -52,16 +79,11 @@ func (self *ClientContext) dialUDP(network, addr string) (net.Conn, error) {
 	c := local[1]
 	go func() {
 		defer c.Close()
-		router, err := self.getOrCreateRouter()
-		if err != nil {
-			log.Println(err)
-			return
-		}
-		disp := router.C.(*UDPDispatcher)
+		disp := self.router.C.(*UDPDispatcher)
 		id := disp.NewEntry(addr)
 		defer disp.DeleteEntry(id)
 		cp := core.NewSyncPortWithTimeout(c, nil, core.DEFAULT_UDP_TIMEOUT)
-		r, err := router.NewRoute(id, cp)
+		r, err := self.router.NewRoute(id, cp)
 		if err != nil {
 			log.Println(err)
 			return
@@ -102,66 +124,6 @@ func (self *ClientContext) dialTCP(network, addr string) (net.Conn, error) {
 		core.NewSimpleSwitch(cp, core.NewPort(local[1], nil)).Run()
 	}()
 	return local[0], nil
-}
-
-func (self *ClientContext) getOrCreateRouter() (*core.SimpleRouter, error) {
-	n := self.routers.Size()
-	var wg sync.WaitGroup
-	for i := n; i < self.Limit; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			c, err := self.InternalDial("tcp", self.Next)
-			if err != nil {
-				log.Println(err)
-				return
-			}
-			router := &core.SimpleRouter{
-				P: core.NewSyncPort(c, self.GetProtocol()),
-				C: &UDPDispatcher{},
-			}
-			self.routers.Add(router)
-			// Prepare UDP proxy.
-			var buf bytes.Buffer
-			enc := gob.NewEncoder(&buf)
-			i := Intrinsic{Func: RELAY_UDP}
-			if err := enc.Encode(&i); err != nil {
-				c.Close()
-				log.Println(err)
-				return
-			}
-			if err := router.P.Pack(iovec.FromSlice(buf.Bytes())); err != nil {
-				c.Close()
-				log.Println(err)
-				return
-			}
-			go func() {
-				defer c.Close()
-				defer self.routers.Delete(router)
-				router.Run()
-			}()
-		}()
-	}
-	wg.Wait()
-	n = self.routers.Size()
-	if n == 0 {
-		return nil, fmt.Errorf("No router is available")
-	}
-	chosen := rand.Uint64() % uint64(n)
-	i := uint64(0)
-	var res *core.SimpleRouter
-	self.routers.Range(func(r *core.SimpleRouter) bool {
-		if i == chosen {
-			res = r
-			return false
-		}
-		i++
-		return true
-	})
-	if res != nil {
-		return res, nil
-	}
-	return nil, fmt.Errorf("No rounter is chosen")
 }
 
 type UDPDispatcher struct {

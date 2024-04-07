@@ -34,7 +34,9 @@ func (self *IntrinsicRelayer) createClientContext() *intrinsic.ClientContext {
 		Limit:        self.NumUDPMux,
 		InternalDial: self.Dial,
 	}
-	context.Init()
+	if err := context.Init(); err != nil {
+		log.Println(err)
+	}
 	return context
 }
 
