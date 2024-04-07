@@ -61,7 +61,7 @@ func (self *ClientContext) dialUDP(network, addr string) (net.Conn, error) {
 		id := mux.NewId(addr)
 		defer mux.FreeId(id)
 		cp := core.NewSyncPortWithTimeout(c, nil, core.DEFAULT_UDP_TIMEOUT)
-		r, err := router.NewRoute(id, cp)
+		r, err := router.NewRoute(core.RouteID(id), cp)
 		if err != nil {
 			log.Println(err)
 			return
@@ -179,13 +179,13 @@ func (self *UDPDispatcher) FreeId(id uint64) {
 	self.r.Delete(id)
 }
 
-func (self *UDPDispatcher) Encode(id uint64, data []byte) ([]byte, error) {
+func (self *UDPDispatcher) Encode(id core.RouteID, data []byte) ([]byte, error) {
 	v, in := self.r.Load(id)
 	if !in {
 		return data, fmt.Errorf("Remote address of #%d doesn't exist", id)
 	}
 	raddr := v.(string)
-	msg := UDPMessage{Id: id, Addr: raddr, Data: data}
+	msg := UDPMessage{Id: uint64(id), Addr: raddr, Data: data}
 	var buf bytes.Buffer
 	enc := gob.NewEncoder(&buf)
 	if err := enc.Encode(&msg); err != nil {
@@ -194,11 +194,11 @@ func (self *UDPDispatcher) Encode(id uint64, data []byte) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (self *UDPDispatcher) Decode(data []byte) (uint64, []byte, error) {
+func (self *UDPDispatcher) Decode(data []byte) (core.RouteID, []byte, error) {
 	dec := gob.NewDecoder(bytes.NewBuffer(data))
 	var msg UDPMessage
 	if err := dec.Decode(&msg); err != nil {
 		return 0, data, err
 	}
-	return msg.Id, msg.Data, nil
+	return core.RouteID(msg.Id), msg.Data, nil
 }

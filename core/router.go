@@ -5,56 +5,59 @@ package core
 import (
 	"fmt"
 	"log"
-	"sync"
 
 	"github.com/bzEq/bx/core/iovec"
 )
 
+type RouteID uint64
+
+// TODO: Use iovec.IoVec.
 type Codec interface {
-	Encode(uint64, []byte) ([]byte, error)
-	Decode([]byte) (uint64, []byte, error)
+	Encode(RouteID, []byte) ([]byte, error)
+	Decode([]byte) (RouteID, []byte, error)
 }
 
-type Route struct {
+type RouteInfo struct {
 	P   *SyncPort
 	Err chan error
 }
 
-// An 1:N router.
 type SimpleRouter struct {
-	P *SyncPort
-	C Codec
-	r sync.Map
+	P      *SyncPort
+	C      Codec
+	routes Map[RouteID, *RouteInfo]
 }
 
-func (self *SimpleRouter) route(id uint64, r *Route) {
-	defer self.r.Delete(id)
+func (self *SimpleRouter) route(id RouteID, ri *RouteInfo) {
 	for {
 		var b iovec.IoVec
-		err := r.P.Unpack(&b)
+		err := ri.P.Unpack(&b)
 		if err != nil {
-			r.Err <- err
+			ri.Err <- err
 			return
 		}
 		buf, err := self.C.Encode(id, b.Consume())
 		if err != nil {
-			r.Err <- err
+			ri.Err <- err
 			return
 		}
 		if err = self.P.Pack(iovec.FromSlice(buf)); err != nil {
-			r.Err <- err
+			ri.Err <- err
 			return
 		}
 	}
 }
 
-func (self *SimpleRouter) NewRoute(id uint64, P *SyncPort) (*Route, error) {
-	r := &Route{P: P, Err: make(chan error)}
-	if v, in := self.r.LoadOrStore(id, r); in {
-		return v.(*Route), fmt.Errorf("Route #%d already exists", id)
+func (self *SimpleRouter) NewRoute(id RouteID, P *SyncPort) (*RouteInfo, error) {
+	ri := &RouteInfo{P: P, Err: make(chan error)}
+	if v, in := self.routes.LoadOrStore(id, ri); in {
+		return v, fmt.Errorf("Route #%d already exists", id)
 	}
-	go self.route(id, r)
-	return r, nil
+	go func() {
+		defer self.routes.Delete(id)
+		self.route(id, ri)
+	}()
+	return ri, nil
 }
 
 func (self *SimpleRouter) Run() {
@@ -70,15 +73,14 @@ func (self *SimpleRouter) Run() {
 			log.Println(err)
 			continue
 		}
-		v, in := self.r.Load(id)
+		ri, in := self.routes.Load(id)
 		if !in {
 			log.Println(fmt.Errorf("Route #%d doesn't exist\n", id))
 			continue
 		}
 		go func() {
-			r := v.(*Route)
-			if err := r.P.Pack(iovec.FromSlice(buf)); err != nil {
-				r.Err <- err
+			if err := ri.P.Pack(iovec.FromSlice(buf)); err != nil {
+				ri.Err <- err
 				return
 			}
 		}()

@@ -112,3 +112,36 @@ func SyncMapSize(m *sync.Map) int {
 	})
 	return n
 }
+
+type Map[K comparable, V any] struct {
+	m sync.Map
+}
+
+func (self *Map[K, V]) Delete(key K) { self.m.Delete(key) }
+
+func (self *Map[K, V]) Load(key K) (value V, ok bool) {
+	v, ok := self.m.Load(key)
+	if !ok {
+		return value, ok
+	}
+	return v.(V), ok
+}
+
+func (self *Map[K, V]) LoadAndDelete(key K) (value V, loaded bool) {
+	v, loaded := self.m.LoadAndDelete(key)
+	if !loaded {
+		return value, loaded
+	}
+	return v.(V), loaded
+}
+
+func (self *Map[K, V]) LoadOrStore(key K, value V) (actual V, loaded bool) {
+	a, loaded := self.m.LoadOrStore(key, value)
+	return a.(V), loaded
+}
+
+func (self *Map[K, V]) Range(f func(key K, value V) bool) {
+	self.m.Range(func(key, value any) bool { return f(key.(K), value.(V)) })
+}
+
+func (self *Map[K, V]) Store(key K, value V) { self.m.Store(key, value) }
