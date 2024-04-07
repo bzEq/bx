@@ -11,10 +11,9 @@ import (
 
 type RouteID uint64
 
-// TODO: Use iovec.IoVec.
 type Codec interface {
-	Encode(RouteID, []byte) ([]byte, error)
-	Decode([]byte) (RouteID, []byte, error)
+	Encode(RouteID, *iovec.IoVec) error
+	Decode(*iovec.IoVec) (RouteID, error)
 }
 
 type RouteInfo struct {
@@ -36,12 +35,12 @@ func (self *SimpleRouter) route(id RouteID, ri *RouteInfo) {
 			ri.Err <- err
 			return
 		}
-		buf, err := self.C.Encode(id, b.Consume())
+		err = self.C.Encode(id, &b)
 		if err != nil {
 			ri.Err <- err
 			return
 		}
-		if err = self.P.Pack(iovec.FromSlice(buf)); err != nil {
+		if err = self.P.Pack(&b); err != nil {
 			ri.Err <- err
 			return
 		}
@@ -68,7 +67,7 @@ func (self *SimpleRouter) Run() {
 			log.Println(err)
 			return
 		}
-		id, buf, err := self.C.Decode(b.Consume())
+		id, err := self.C.Decode(&b)
 		if err != nil {
 			log.Println(err)
 			continue
@@ -79,7 +78,7 @@ func (self *SimpleRouter) Run() {
 			continue
 		}
 		go func() {
-			if err := ri.P.Pack(iovec.FromSlice(buf)); err != nil {
+			if err := ri.P.Pack(&b); err != nil {
 				ri.Err <- err
 				return
 			}

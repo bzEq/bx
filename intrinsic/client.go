@@ -57,9 +57,9 @@ func (self *ClientContext) dialUDP(network, addr string) (net.Conn, error) {
 			log.Println(err)
 			return
 		}
-		mux := router.C.(*UDPDispatcher)
-		id := mux.NewId(addr)
-		defer mux.FreeId(id)
+		disp := router.C.(*UDPDispatcher)
+		id := disp.NewEntry(addr)
+		defer disp.DeleteEntry(id)
 		cp := core.NewSyncPortWithTimeout(c, nil, core.DEFAULT_UDP_TIMEOUT)
 		r, err := router.NewRoute(core.RouteID(id), cp)
 		if err != nil {
@@ -165,40 +165,41 @@ func (self *ClientContext) getOrCreateRouter() (*core.SimpleRouter, error) {
 }
 
 type UDPDispatcher struct {
-	r sync.Map
+	t core.Map[core.RouteID, string]
 	c uint64
 }
 
-func (self *UDPDispatcher) NewId(addr string) uint64 {
-	id := atomic.AddUint64(&self.c, 1)
-	self.r.Store(id, addr)
+func (self *UDPDispatcher) NewEntry(addr string) core.RouteID {
+	id := core.RouteID(atomic.AddUint64(&self.c, 1))
+	self.t.Store(id, addr)
 	return id
 }
 
-func (self *UDPDispatcher) FreeId(id uint64) {
-	self.r.Delete(id)
+func (self *UDPDispatcher) DeleteEntry(id core.RouteID) {
+	self.t.Delete(id)
 }
 
-func (self *UDPDispatcher) Encode(id core.RouteID, data []byte) ([]byte, error) {
-	v, in := self.r.Load(id)
+func (self *UDPDispatcher) Encode(id core.RouteID, data *iovec.IoVec) error {
+	raddr, in := self.t.Load(id)
 	if !in {
-		return data, fmt.Errorf("Remote address of #%d doesn't exist", id)
+		return fmt.Errorf("Remote address of RouteID #%d doesn't exist", id)
 	}
-	raddr := v.(string)
-	msg := UDPMessage{Id: uint64(id), Addr: raddr, Data: data}
+	msg := UDPMessage{Id: uint64(id), Addr: raddr, Data: data.Consume()}
 	var buf bytes.Buffer
 	enc := gob.NewEncoder(&buf)
 	if err := enc.Encode(&msg); err != nil {
-		return data, err
+		return err
 	}
-	return buf.Bytes(), nil
+	data.Take(buf.Bytes())
+	return nil
 }
 
-func (self *UDPDispatcher) Decode(data []byte) (core.RouteID, []byte, error) {
-	dec := gob.NewDecoder(bytes.NewBuffer(data))
+func (self *UDPDispatcher) Decode(data *iovec.IoVec) (core.RouteID, error) {
+	dec := gob.NewDecoder(bytes.NewBuffer(data.Consume()))
 	var msg UDPMessage
 	if err := dec.Decode(&msg); err != nil {
-		return 0, data, err
+		return core.RouteID(^uint64(0)), err
 	}
-	return core.RouteID(msg.Id), msg.Data, nil
+	data.Take(msg.Data)
+	return core.RouteID(msg.Id), nil
 }
