@@ -3,6 +3,7 @@
 package core
 
 import (
+	"fmt"
 	"io"
 	"net"
 	"sync"
@@ -64,7 +65,10 @@ func (self *EventRecorder) HappenedBefore(a, b string) bool {
 
 func (self *EventRecorder) AddRecord(e string) uint64 {
 	t := atomic.AddUint64(&self.clock, 1)
-	self.records.LoadOrStore(e, t)
+	_, in := self.records.LoadOrStore(e, t)
+	if in {
+		panic(fmt.Errorf("Event %s already exists!", e))
+	}
 	return t
 }
 
