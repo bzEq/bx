@@ -16,8 +16,6 @@ import (
 
 	"github.com/bzEq/bx/core"
 	"github.com/bzEq/bx/core/iovec"
-	lz4 "github.com/bzEq/bx/third_party/lz4v4"
-	"github.com/bzEq/bx/third_party/snappy"
 )
 
 func WrapLegacyPass(p core.LegacyPass, b *iovec.IoVec) error {
@@ -58,8 +56,6 @@ func (self *Base64Dec) RunOnBytes(p []byte) ([]byte, error) {
 
 const (
 	COMPRESS_GZIP = iota
-	COMPRESS_LZ4
-	COMPRESS_SNAPPY
 	NUM_COMPRESSOR
 )
 
@@ -71,10 +67,6 @@ func (self *RandCompressor) RunOnBytes(p []byte) ([]byte, error) {
 	switch x {
 	case COMPRESS_GZIP:
 		pass = &GZipCompressor{Level: flate.BestSpeed}
-	case COMPRESS_LZ4:
-		pass = &LZ4Compressor{}
-	case COMPRESS_SNAPPY:
-		pass = &SnappyEncoder{}
 	default:
 		return nil, fmt.Errorf("Unrecognized compressor")
 	}
@@ -98,10 +90,6 @@ func (self *RandDecompressor) RunOnBytes(p []byte) ([]byte, error) {
 	switch x {
 	case COMPRESS_GZIP:
 		pass = &GZipDecompressor{}
-	case COMPRESS_LZ4:
-		pass = &LZ4Decompressor{}
-	case COMPRESS_SNAPPY:
-		pass = &SnappyDecoder{}
 	default:
 		return nil, fmt.Errorf("Unrecognized compressor")
 	}
@@ -267,38 +255,6 @@ func (self *DeRotateLeft) RunOnBytes(p []byte) ([]byte, error) {
 	return dst.Bytes(), nil
 }
 
-type LZ4Compressor struct{}
-
-func (self *LZ4Compressor) Run(b *iovec.IoVec) error {
-	return WrapLegacyPass(self, b)
-}
-
-func (self *LZ4Compressor) RunOnBytes(p []byte) ([]byte, error) {
-	out := &bytes.Buffer{}
-	zw := lz4.NewWriter(out)
-	defer zw.Close()
-	if _, err := zw.Write(p); err != nil {
-		return out.Bytes(), err
-	}
-	err := zw.Flush()
-	return out.Bytes(), err
-}
-
-type LZ4Decompressor struct{}
-
-func (self *LZ4Decompressor) Run(b *iovec.IoVec) error {
-	return WrapLegacyPass(self, b)
-}
-
-func (self *LZ4Decompressor) RunOnBytes(p []byte) ([]byte, error) {
-	zr := lz4.NewReader(bytes.NewBuffer(p))
-	out, err := ioutil.ReadAll(zr)
-	if err != io.EOF {
-		return out, err
-	}
-	return out, nil
-}
-
 type Reverse struct{}
 
 func (self *Reverse) RunOnBytes(src []byte) (dst []byte, err error) {
@@ -316,16 +272,4 @@ func (self *ByteSwap) RunOnBytes(p []byte) ([]byte, error) {
 	dst := make([]byte, len(p))
 	byteSwap(dst, p)
 	return dst, nil
-}
-
-type SnappyEncoder struct{}
-
-func (self *SnappyEncoder) RunOnBytes(src []byte) ([]byte, error) {
-	return snappy.Encode(nil, src), nil
-}
-
-type SnappyDecoder struct{}
-
-func (self *SnappyDecoder) RunOnBytes(src []byte) ([]byte, error) {
-	return snappy.Decode(nil, src)
 }
