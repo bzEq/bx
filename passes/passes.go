@@ -273,3 +273,32 @@ func (self *ByteSwap) RunOnBytes(p []byte) ([]byte, error) {
 	byteSwap(dst, p)
 	return dst, nil
 }
+
+type RandomEncoder struct {
+	PMs []*core.PassManager
+}
+
+func (self *RandomEncoder) Run(b *iovec.IoVec) error {
+	n := int(rand.Uint32())
+	if err := self.PMs[n%len(self.PMs)].Run(b); err != nil {
+		return err
+	}
+	var padding bytes.Buffer
+	padding.WriteByte(byte(n))
+	b.Take(padding.Bytes())
+	return nil
+}
+
+type RandomDecoder struct {
+	PMs []*core.PassManager
+}
+
+func (self *RandomDecoder) Run(b *iovec.IoVec) error {
+	t, err := b.LastByte()
+	if err != nil {
+		return err
+	}
+	n := int(t)
+	b.Drop(1)
+	return self.PMs[n%len(self.PMs)].Run(b)
+}

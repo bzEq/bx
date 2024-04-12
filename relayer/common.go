@@ -3,46 +3,13 @@
 package relayer
 
 import (
-	"bytes"
-	"math/rand"
-
 	"github.com/bzEq/bx/core"
-	"github.com/bzEq/bx/core/iovec"
 	"github.com/bzEq/bx/passes"
 )
 
-type RandomEncoder struct {
-	PMs []*core.PassManager
-}
-
-func (self *RandomEncoder) Run(b *iovec.IoVec) error {
-	n := int(rand.Uint32())
-	if err := self.PMs[n%len(self.PMs)].Run(b); err != nil {
-		return err
-	}
-	var padding bytes.Buffer
-	padding.WriteByte(byte(n))
-	b.Take(padding.Bytes())
-	return nil
-}
-
-type RandomDecoder struct {
-	PMs []*core.PassManager
-}
-
-func (self *RandomDecoder) Run(b *iovec.IoVec) error {
-	t, err := b.LastByte()
-	if err != nil {
-		return err
-	}
-	n := int(t)
-	b.Drop(1)
-	return self.PMs[n%len(self.PMs)].Run(b)
-}
-
-func createRandomCodec() (*RandomEncoder, *RandomDecoder) {
-	enc := &RandomEncoder{}
-	dec := &RandomDecoder{}
+func createRandomCodec() (*passes.RandomEncoder, *passes.RandomDecoder) {
+	enc := &passes.RandomEncoder{}
+	dec := &passes.RandomDecoder{}
 	{
 		pmb := &core.PackUnpackPassManagerBuilder{}
 		pmb.AddPairedPasses(&passes.OBFSEncoder{}, &passes.OBFSDecoder{})
