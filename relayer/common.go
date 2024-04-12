@@ -29,13 +29,6 @@ func createRandomCodec() (*passes.RandomEncoder, *passes.RandomDecoder) {
 	return enc, dec
 }
 
-func createPackUnpackPassManagerBuilder() *core.PackUnpackPassManagerBuilder {
-	pmb := &core.PackUnpackPassManagerBuilder{}
-	pmb.AddPairedPasses(&passes.TailPaddingEncoder{}, &passes.TailPaddingDecoder{})
-	pmb.AddPairedPasses(&passes.OBFSEncoder{}, &passes.OBFSDecoder{})
-	return pmb
-}
-
 func CreateProtocol(name string) core.Protocol {
 	switch name {
 	case "raw":
