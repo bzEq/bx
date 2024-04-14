@@ -15,16 +15,16 @@ func createRandomCodec() (*passes.RandomEncoder, *passes.RandomDecoder) {
 		pmb.AddPairedPasses(&passes.OBFSEncoder{}, &passes.OBFSDecoder{})
 		pmb.AddPairedPasses(&passes.TailPaddingEncoder{}, &passes.TailPaddingDecoder{})
 		pmb.AddPairedPasses(&passes.OBFSEncoder{}, &passes.OBFSDecoder{})
-		enc.PMs = append(enc.PMs, pmb.BuildPackPassManager())
-		dec.PMs = append(dec.PMs, pmb.BuildUnpackPassManager())
+		enc.AddPM(pmb.BuildPackPassManager())
+		dec.AddPM(pmb.BuildUnpackPassManager())
 	}
 	{
 		pmb := &core.PackUnpackPassManagerBuilder{}
 		pmb.AddPairedPasses(&passes.TailPaddingEncoder{}, &passes.TailPaddingDecoder{})
 		pmb.AddPairedPasses(&passes.OBFSEncoder{}, &passes.OBFSDecoder{})
 		pmb.AddPairedPasses(&passes.TailPaddingEncoder{}, &passes.TailPaddingDecoder{})
-		enc.PMs = append(enc.PMs, pmb.BuildPackPassManager())
-		dec.PMs = append(dec.PMs, pmb.BuildUnpackPassManager())
+		enc.AddPM(pmb.BuildPackPassManager())
+		dec.AddPM(pmb.BuildUnpackPassManager())
 	}
 	return enc, dec
 }
