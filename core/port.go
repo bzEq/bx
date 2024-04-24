@@ -17,6 +17,26 @@ const DEFAULT_BUFFER_LIMIT = 64 << 20
 const DEFAULT_UDP_TIMEOUT = 60
 const DEFAULT_UDP_BUFFER_SIZE = 2 << 10
 
+func CloseRead(c net.Conn) error {
+	if c, ok := c.(*net.TCPConn); ok {
+		return c.CloseRead()
+	}
+	if c, ok := c.(*net.UnixConn); ok {
+		return c.CloseRead()
+	}
+	return nil
+}
+
+func CloseWrite(c net.Conn) error {
+	if c, ok := c.(*net.TCPConn); ok {
+		return c.CloseWrite()
+	}
+	if c, ok := c.(*net.UnixConn); ok {
+		return c.CloseWrite()
+	}
+	return nil
+}
+
 type Port interface {
 	Pack(*iovec.IoVec) error
 	Unpack(*iovec.IoVec) error
@@ -50,17 +70,11 @@ func (self *NetPort) Pack(b *iovec.IoVec) error {
 }
 
 func (self *NetPort) CloseRead() error {
-	if c, succ := self.C.(*net.TCPConn); succ {
-		return c.CloseRead()
-	}
-	return nil
+	return CloseRead(self.C)
 }
 
 func (self *NetPort) CloseWrite() error {
-	if c, succ := self.C.(*net.TCPConn); succ {
-		return c.CloseWrite()
-	}
-	return nil
+	return CloseWrite(self.C)
 }
 
 type RawNetPort struct {
@@ -120,17 +134,11 @@ func (self *RawNetPort) Unpack(b *iovec.IoVec) error {
 }
 
 func (self *RawNetPort) CloseRead() error {
-	if c, succ := self.C.(*net.TCPConn); succ {
-		return c.CloseRead()
-	}
-	return nil
+	return CloseRead(self.C)
 }
 
 func (self *RawNetPort) CloseWrite() error {
-	if c, succ := self.C.(*net.TCPConn); succ {
-		return c.CloseWrite()
-	}
-	return nil
+	return CloseWrite(self.C)
 }
 
 type SyncPort struct {
