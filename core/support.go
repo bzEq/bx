@@ -4,27 +4,11 @@ package core
 
 import (
 	"fmt"
-	"io"
 	"net"
 	"sync"
 	"sync/atomic"
 	"time"
 )
-
-type OnceCloser struct {
-	once sync.Once
-	c    io.Closer
-	err  error
-}
-
-func NewOnceCloser(c io.Closer) io.Closer {
-	return &OnceCloser{c: c}
-}
-
-func (self *OnceCloser) Close() error {
-	self.once.Do(func() { self.err = self.c.Close() })
-	return self.err
-}
 
 type ReadWriterWithTimeout struct {
 	C            net.Conn
