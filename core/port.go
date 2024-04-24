@@ -20,6 +20,8 @@ const DEFAULT_UDP_BUFFER_SIZE = 2 << 10
 type Port interface {
 	Pack(*iovec.IoVec) error
 	Unpack(*iovec.IoVec) error
+	CloseRead() error
+	CloseWrite() error
 }
 
 type NetPort struct {
@@ -45,6 +47,20 @@ func (self *NetPort) Pack(b *iovec.IoVec) error {
 		return err
 	}
 	return self.wbuf.Flush()
+}
+
+func (self *NetPort) CloseRead() error {
+	if c, succ := self.C.(*net.TCPConn); succ {
+		return c.CloseRead()
+	}
+	return nil
+}
+
+func (self *NetPort) CloseWrite() error {
+	if c, succ := self.C.(*net.TCPConn); succ {
+		return c.CloseWrite()
+	}
+	return nil
 }
 
 type RawNetPort struct {
@@ -100,6 +116,20 @@ func (self *RawNetPort) Unpack(b *iovec.IoVec) error {
 	}
 	b.Take(self.buf[:self.nr])
 	self.buf = self.buf[self.nr:]
+	return nil
+}
+
+func (self *RawNetPort) CloseRead() error {
+	if c, succ := self.C.(*net.TCPConn); succ {
+		return c.CloseRead()
+	}
+	return nil
+}
+
+func (self *RawNetPort) CloseWrite() error {
+	if c, succ := self.C.(*net.TCPConn); succ {
+		return c.CloseWrite()
+	}
 	return nil
 }
 
