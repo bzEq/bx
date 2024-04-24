@@ -94,31 +94,33 @@ func (self *ClientContext) dialUDP(network, addr string) (net.Conn, error) {
 }
 
 func (self *ClientContext) dialTCP(network, addr string) (net.Conn, error) {
-	c, err := self.InternalDial(network, self.Next)
-	if err != nil {
-		return nil, err
-	}
-	i := Intrinsic{Func: RELAY_TCP}
-	{
-		data := &bytes.Buffer{}
-		req := TCPRequest{Addr: addr}
-		enc := gob.NewEncoder(data)
-		if err := enc.Encode(&req); err != nil {
-			c.Close()
-			return nil, err
-		}
-		i.Data = data.Bytes()
-	}
-	pack := &bytes.Buffer{}
-	enc := gob.NewEncoder(pack)
-	if err := enc.Encode(&i); err != nil {
-		c.Close()
-		return nil, err
-	}
-	cp := core.NewPort(c, self.GetProtocol())
 	local := core.MakePipe()
 	go func() {
 		defer local[1].Close()
+		c, err := self.InternalDial(network, self.Next)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		defer c.Close()
+		i := Intrinsic{Func: RELAY_TCP}
+		{
+			data := &bytes.Buffer{}
+			req := TCPRequest{Addr: addr}
+			enc := gob.NewEncoder(data)
+			if err := enc.Encode(&req); err != nil {
+				log.Println(err)
+				return
+			}
+			i.Data = data.Bytes()
+		}
+		pack := &bytes.Buffer{}
+		enc := gob.NewEncoder(pack)
+		if err := enc.Encode(&i); err != nil {
+			log.Println(err)
+			return
+		}
+		cp := core.NewPort(c, self.GetProtocol())
 		// Connect remote server without further check to be fast.
 		cp.Pack(iovec.FromSlice(pack.Bytes()))
 		core.NewSimpleSwitch(cp, core.NewPort(local[1], nil)).Run()
