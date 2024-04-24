@@ -23,13 +23,8 @@ func (self *SimpleSwitch) Run() {
 		defer close(self.done[1])
 		self.switchTraffic(self.port[1], self.port[0])
 	}()
-	// If error occurs in one direction, we exit the swith immediately,
-	// so that outer function could close both connections fast.
-	select {
-	case <-self.done[0]:
-	case <-self.done[1]:
-		return
-	}
+	<-self.done[0]
+	<-self.done[1]
 }
 
 func (self *SimpleSwitch) switchTraffic(in, out Port) {
