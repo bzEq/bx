@@ -32,7 +32,7 @@ func (self *SocksRelayer) Run() {
 			log.Println(err)
 			break
 		}
-		if self.Next == nil || len(self.Next) == 0 {
+		if len(self.Next) == 0 {
 			go self.ServeAsEndRelayer(c)
 		} else {
 			go self.ServeAsIntermediateRelayer(c)
