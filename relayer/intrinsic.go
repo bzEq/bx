@@ -132,7 +132,6 @@ func (self *IntrinsicRelayer) Run() {
 }
 
 func (self *IntrinsicRelayer) ServeAsLocalRelayer(c net.Conn) {
-	defer c.Close()
 	context := self.createClientContext()
 	s := socks5.Server{
 		UDPAddr: self.udpAddr,
