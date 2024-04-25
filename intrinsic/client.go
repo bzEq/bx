@@ -47,7 +47,7 @@ func (self *ClientContext) Init() error {
 		defer c.Close()
 		self.router = &core.SimpleRouter{
 			// Set timeout a big value in order to serve UDP requests.
-			P: core.NewSyncPortWithTimeout(c, self.GetProtocol(), 1<<20),
+			P: core.NewSyncPortWithTimeout(c, self.GetProtocol(), 60*60*24*30),
 			C: &UDPDispatcher{},
 		}
 		var buf bytes.Buffer
