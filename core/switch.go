@@ -3,6 +3,7 @@
 package core
 
 import (
+	"io"
 	"log"
 
 	"github.com/bzEq/bx/core/iovec"
@@ -31,13 +32,15 @@ func (self *SimpleSwitch) switchTraffic(in, out Port) {
 	for {
 		var b iovec.IoVec
 		if err := in.Unpack(&b); err != nil {
-			log.Println(err)
-			out.CloseWrite()
+			if err == io.EOF {
+				out.CloseWrite()
+			} else {
+				log.Println(err)
+			}
 			return
 		}
 		if err := out.Pack(&b); err != nil {
 			log.Println(err)
-			in.CloseRead()
 			return
 		}
 	}
