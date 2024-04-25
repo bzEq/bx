@@ -16,9 +16,8 @@ import (
 )
 
 type ClientContext struct {
-	GetProtocol func() core.Protocol
-	// Deprecated.
-	Limit        int
+	GetProtocol  func() core.Protocol
+	RelayUDP     bool
 	Next         string
 	InternalDial func(network string, addr string) (net.Conn, error)
 
@@ -34,7 +33,10 @@ func (self *ClientContext) Init() error {
 	if self.InternalDial == nil {
 		self.InternalDial = net.Dial
 	}
-	// Launch router.
+	if !self.RelayUDP {
+		return nil
+	}
+	// Launch router for UDP relay.
 	routerReady := make(chan error)
 	go func() {
 		c, err := self.InternalDial("tcp", self.Next)

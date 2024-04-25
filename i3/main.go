@@ -28,7 +28,6 @@ func startRelayer() {
 	r := &relayer.IntrinsicRelayer{}
 	r.Local = options.Local
 	r.LocalUDP = options.LocalUDP
-	r.NumUDPMux = 4
 	r.LocalHTTPProxy = options.LocalHTTPProxy
 	if options.Next != "" {
 		r.Next = strings.Split(options.Next, ",")

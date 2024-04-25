@@ -19,7 +19,6 @@ type IntrinsicRelayer struct {
 	Listen         func(string, string) (net.Listener, error)
 	Local          string
 	LocalUDP       string
-	NumUDPMux      int
 	LocalHTTPProxy string
 	Dial           func(string, string) (net.Conn, error)
 	Next           []string
@@ -30,8 +29,8 @@ type IntrinsicRelayer struct {
 func (self *IntrinsicRelayer) createClientContext() *intrinsic.ClientContext {
 	context := &intrinsic.ClientContext{
 		GetProtocol:  func() core.Protocol { return CreateProtocol(self.RelayProtocol) },
+		RelayUDP:     self.LocalUDP != "",
 		Next:         self.Next[rand.Uint64()%uint64(len(self.Next))],
-		Limit:        self.NumUDPMux,
 		InternalDial: self.Dial,
 	}
 	if err := context.Init(); err != nil {
