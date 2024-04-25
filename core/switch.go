@@ -28,16 +28,16 @@ func (self *SimpleSwitch) Run() {
 }
 
 func (self *SimpleSwitch) switchTraffic(in, out Port) {
-	defer in.CloseRead()
-	defer out.CloseWrite()
 	for {
 		var b iovec.IoVec
 		if err := in.Unpack(&b); err != nil {
 			log.Println(err)
+			out.CloseWrite()
 			return
 		}
 		if err := out.Pack(&b); err != nil {
 			log.Println(err)
+			in.CloseRead()
 			return
 		}
 	}
