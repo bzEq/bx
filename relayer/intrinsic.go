@@ -4,7 +4,6 @@ package relayer
 
 import (
 	"log"
-	"math/rand"
 	"net"
 	"net/http"
 	"net/url"
@@ -21,26 +20,30 @@ type IntrinsicRelayer struct {
 	LocalUDP       string
 	LocalHTTPProxy string
 	Dial           func(string, string) (net.Conn, error)
-	Next           []string
+	Next           string
 	RelayProtocol  string
 	udpAddr        *net.UDPAddr
+	clientContext  *intrinsic.ClientContext
 }
 
-func (self *IntrinsicRelayer) createClientContext() *intrinsic.ClientContext {
-	context := &intrinsic.ClientContext{
+func (self *IntrinsicRelayer) getOrCreateClientContext() *intrinsic.ClientContext {
+	if self.clientContext != nil {
+		return self.clientContext
+	}
+	self.clientContext = &intrinsic.ClientContext{
 		GetProtocol:  func() core.Protocol { return CreateProtocol(self.RelayProtocol) },
 		RelayUDP:     self.LocalUDP != "",
-		Next:         self.Next[rand.Uint64()%uint64(len(self.Next))],
+		Next:         self.Next,
 		InternalDial: self.Dial,
 	}
-	if err := context.Init(); err != nil {
+	if err := self.clientContext.Init(); err != nil {
 		log.Println(err)
 	}
-	return context
+	return self.clientContext
 }
 
 func (self *IntrinsicRelayer) startLocalHTTPProxy() error {
-	context := self.createClientContext()
+	context := self.getOrCreateClientContext()
 	socksProxyURL, err := url.Parse("socks5://" + self.Local)
 	if err != nil {
 		log.Println(err)
@@ -70,7 +73,7 @@ func (self *IntrinsicRelayer) startLocalUDPServer() error {
 	self.udpAddr = ln.LocalAddr().(*net.UDPAddr)
 	go func() {
 		defer ln.Close()
-		context := self.createClientContext()
+		context := self.getOrCreateClientContext()
 		for {
 			req := make([]byte, core.DEFAULT_UDP_BUFFER_SIZE)
 			n, remoteAddr, err := ln.ReadFromUDP(req)
@@ -93,7 +96,7 @@ func (self *IntrinsicRelayer) startLocalUDPServer() error {
 }
 
 func (self *IntrinsicRelayer) IsEndPoint() bool {
-	return len(self.Next) == 0
+	return self.Next == ""
 }
 
 func (self *IntrinsicRelayer) Run() {
@@ -131,7 +134,7 @@ func (self *IntrinsicRelayer) Run() {
 }
 
 func (self *IntrinsicRelayer) ServeAsLocalRelayer(c net.Conn) {
-	context := self.createClientContext()
+	context := self.getOrCreateClientContext()
 	s := socks5.Server{
 		UDPAddr: self.udpAddr,
 		Dial:    context.Dial,

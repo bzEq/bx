@@ -12,7 +12,6 @@ import (
 	"log"
 	"math/rand"
 	"net"
-	"strings"
 
 	"github.com/bzEq/bx/relayer"
 )
@@ -29,9 +28,7 @@ func startRelayer() {
 	r.Local = options.Local
 	r.LocalUDP = options.LocalUDP
 	r.LocalHTTPProxy = options.LocalHTTPProxy
-	if options.Next != "" {
-		r.Next = strings.Split(options.Next, ",")
-	}
+	r.Next = options.Next
 	r.Dial = func(network, address string) (net.Conn, error) {
 		return net.Dial(network, address)
 	}
