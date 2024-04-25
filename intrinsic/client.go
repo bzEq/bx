@@ -7,7 +7,6 @@ import (
 	"encoding/gob"
 	"fmt"
 	"log"
-	"math"
 	"net"
 	"strings"
 	"sync/atomic"
@@ -47,8 +46,8 @@ func (self *ClientContext) Init() error {
 		}
 		defer c.Close()
 		self.router = &core.SimpleRouter{
-			// Set timeout to max in order to serve UDP requests.
-			P: core.NewSyncPortWithTimeout(c, self.GetProtocol(), math.MaxInt),
+			// Set timeout a big value in order to serve UDP requests.
+			P: core.NewSyncPortWithTimeout(c, self.GetProtocol(), 1<<20),
 			C: &UDPDispatcher{},
 		}
 		var buf bytes.Buffer

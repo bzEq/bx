@@ -26,24 +26,18 @@ type IntrinsicRelayer struct {
 	clientContext  *intrinsic.ClientContext
 }
 
-func (self *IntrinsicRelayer) getOrCreateClientContext() *intrinsic.ClientContext {
-	if self.clientContext != nil {
-		return self.clientContext
-	}
+func (self *IntrinsicRelayer) init() error {
 	self.clientContext = &intrinsic.ClientContext{
 		GetProtocol:  func() core.Protocol { return CreateProtocol(self.RelayProtocol) },
 		RelayUDP:     self.LocalUDP != "",
 		Next:         self.Next,
 		InternalDial: self.Dial,
 	}
-	if err := self.clientContext.Init(); err != nil {
-		log.Println(err)
-	}
-	return self.clientContext
+	return self.clientContext.Init()
 }
 
 func (self *IntrinsicRelayer) startLocalHTTPProxy() error {
-	context := self.getOrCreateClientContext()
+	context := self.clientContext
 	socksProxyURL, err := url.Parse("socks5://" + self.Local)
 	if err != nil {
 		log.Println(err)
@@ -73,7 +67,7 @@ func (self *IntrinsicRelayer) startLocalUDPServer() error {
 	self.udpAddr = ln.LocalAddr().(*net.UDPAddr)
 	go func() {
 		defer ln.Close()
-		context := self.getOrCreateClientContext()
+		context := self.clientContext
 		for {
 			req := make([]byte, core.DEFAULT_UDP_BUFFER_SIZE)
 			n, remoteAddr, err := ln.ReadFromUDP(req)
@@ -100,6 +94,10 @@ func (self *IntrinsicRelayer) IsEndPoint() bool {
 }
 
 func (self *IntrinsicRelayer) Run() {
+	if err := self.init(); err != nil {
+		log.Println(err)
+		return
+	}
 	if !self.IsEndPoint() && self.LocalUDP != "" {
 		if err := self.startLocalUDPServer(); err != nil {
 			log.Println(err)
@@ -134,7 +132,7 @@ func (self *IntrinsicRelayer) Run() {
 }
 
 func (self *IntrinsicRelayer) ServeAsLocalRelayer(c net.Conn) {
-	context := self.getOrCreateClientContext()
+	context := self.clientContext
 	s := socks5.Server{
 		UDPAddr: self.udpAddr,
 		Dial:    context.Dial,
