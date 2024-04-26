@@ -60,6 +60,7 @@ func (self *SocksRelayer) ServeAsEndRelayer(red net.Conn) {
 		core.RunSimpleSwitch(core.NewPort(red, CreateProtocol(self.RelayProtocol)),
 			core.NewPort(blue[0], nil))
 	}()
+	defer blue[1].Close()
 	server := &socks5.Server{}
 	server.Serve(blue[1])
 }

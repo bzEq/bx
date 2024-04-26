@@ -185,7 +185,6 @@ func (self *Server) handleConnect(c net.Conn, req Request) error {
 }
 
 func (self *Server) Serve(c net.Conn) error {
-	defer c.Close()
 	if err := self.exchangeMetadata(c); err != nil {
 		return err
 	}
