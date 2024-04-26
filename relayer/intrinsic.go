@@ -9,9 +9,9 @@ import (
 	"net/url"
 
 	"github.com/bzEq/bx/core"
-	hfe "github.com/bzEq/bx/frontend/http"
-	"github.com/bzEq/bx/frontend/socks5"
-	"github.com/bzEq/bx/intrinsic"
+	h1p "github.com/bzEq/bx/proxy/http"
+	"github.com/bzEq/bx/proxy/intrinsic"
+	"github.com/bzEq/bx/proxy/socks5"
 )
 
 type IntrinsicRelayer struct {
@@ -43,7 +43,7 @@ func (self *IntrinsicRelayer) startLocalHTTPProxy() error {
 		log.Println(err)
 		return err
 	}
-	proxy := &hfe.HTTPProxy{
+	proxy := &h1p.HTTPProxy{
 		Dial:      context.Dial,
 		Transport: &http.Transport{Proxy: http.ProxyURL(socksProxyURL)},
 	}

@@ -8,7 +8,7 @@ import (
 	"net"
 
 	"github.com/bzEq/bx/core"
-	"github.com/bzEq/bx/frontend/socks5"
+	"github.com/bzEq/bx/proxy/socks5"
 )
 
 type SocksRelayer struct {
