@@ -61,7 +61,6 @@ func main() {
 			return
 		}
 		go func(c net.Conn) {
-			defer c.Close()
 			s := socks5.Server{
 				UDPAddr: udpAddr,
 			}

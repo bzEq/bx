@@ -137,7 +137,6 @@ func (self *IntrinsicRelayer) ServeAsLocalRelayer(c net.Conn) {
 		UDPAddr: self.udpAddr,
 		Dial:    context.Dial,
 	}
-	defer c.Close()
 	s.Serve(c)
 }
 
