@@ -78,12 +78,16 @@ func (self *ClientContext) Dial(network string, addr string) (net.Conn, error) {
 }
 
 func (self *ClientContext) dialUDP(network, addr string) (net.Conn, error) {
+	raddr, err := net.ResolveUDPAddr(network, addr)
+	if err != nil {
+		return nil, err
+	}
 	local := core.MakePipe()
 	c := local[1]
 	go func() {
 		defer c.Close()
 		disp := self.router.C.(*UDPDispatcher)
-		id := disp.NewEntry(addr)
+		id := disp.NewEntry(raddr)
 		defer disp.DeleteEntry(id)
 		cp := core.NewSyncPortWithTimeout(c, nil, core.DEFAULT_UDP_TIMEOUT)
 		r, err := self.router.NewRoute(id, cp)
@@ -97,6 +101,10 @@ func (self *ClientContext) dialUDP(network, addr string) (net.Conn, error) {
 }
 
 func (self *ClientContext) dialTCP(network, addr string) (net.Conn, error) {
+	raddr, err := net.ResolveTCPAddr(network, addr)
+	if err != nil {
+		return nil, err
+	}
 	local := core.MakePipe()
 	go func() {
 		defer local[1].Close()
@@ -109,7 +117,7 @@ func (self *ClientContext) dialTCP(network, addr string) (net.Conn, error) {
 		i := Intrinsic{Func: RELAY_TCP}
 		{
 			data := &bytes.Buffer{}
-			req := TCPRequest{Addr: addr}
+			req := TCPRequest{Addr: *raddr}
 			enc := gob.NewEncoder(data)
 			if err := enc.Encode(&req); err != nil {
 				log.Println(err)
@@ -132,11 +140,11 @@ func (self *ClientContext) dialTCP(network, addr string) (net.Conn, error) {
 }
 
 type UDPDispatcher struct {
-	t core.Map[core.RouteId, string]
+	t core.Map[core.RouteId, *net.UDPAddr]
 	c uint64
 }
 
-func (self *UDPDispatcher) NewEntry(addr string) core.RouteId {
+func (self *UDPDispatcher) NewEntry(addr *net.UDPAddr) core.RouteId {
 	id := core.RouteId(atomic.AddUint64(&self.c, 1))
 	self.t.Store(id, addr)
 	return id
@@ -151,7 +159,7 @@ func (self *UDPDispatcher) Encode(id core.RouteId, data *iovec.IoVec) error {
 	if !in {
 		return fmt.Errorf("Remote address of RouteId #%d doesn't exist", id)
 	}
-	msg := UDPMessage{Id: id, Addr: raddr, Data: data.Consume()}
+	msg := UDPMessage{Id: id, Addr: *raddr, Data: data.Consume()}
 	var buf bytes.Buffer
 	enc := gob.NewEncoder(&buf)
 	if err := enc.Encode(&msg); err != nil {

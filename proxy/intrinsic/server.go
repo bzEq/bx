@@ -25,12 +25,12 @@ const (
 )
 
 type TCPRequest struct {
-	Addr string
+	Addr net.TCPAddr
 }
 
 type UDPMessage struct {
 	Id   core.RouteId
-	Addr string
+	Addr net.UDPAddr
 	Data []byte
 }
 
@@ -64,7 +64,7 @@ func (self *Server) relayUDP() error {
 				log.Println(err)
 				return
 			}
-			c, err := net.Dial("udp", msg.Addr)
+			c, err := net.Dial("udp", msg.Addr.String())
 			if err != nil {
 				log.Println(err)
 				return
@@ -128,7 +128,7 @@ func (self *Server) Run() {
 			log.Println(err)
 			return
 		}
-		if err := self.relayTCP(req.Addr); err != nil {
+		if err := self.relayTCP(req.Addr.String()); err != nil {
 			log.Println(err)
 			return
 		}
