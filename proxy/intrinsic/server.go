@@ -57,7 +57,7 @@ func (self *Server) relayUDP() error {
 		if err != nil {
 			return err
 		}
-		go func() {
+		go func(b iovec.IoVec) {
 			var msg UDPMessage
 			dec := gob.NewDecoder(&b)
 			if err := dec.Decode(&msg); err != nil {
@@ -98,7 +98,7 @@ func (self *Server) relayUDP() error {
 					return
 				}
 			}
-		}()
+		}(b)
 	}
 }
 

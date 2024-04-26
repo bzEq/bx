@@ -77,11 +77,11 @@ func (self *SimpleRouter) Run() {
 			log.Println(fmt.Errorf("Route #%d doesn't exist\n", id))
 			continue
 		}
-		go func() {
+		go func(ri *RouteInfo) {
 			if err := ri.P.Pack(&b); err != nil {
 				ri.Err <- err
 				return
 			}
-		}()
+		}(ri)
 	}
 }

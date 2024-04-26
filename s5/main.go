@@ -37,14 +37,14 @@ func main() {
 				log.Println(err)
 				continue
 			}
-			s := socks5.Server{
-				UDPAddr: ln.LocalAddr().(*net.UDPAddr),
-			}
-			go func() {
-				if err := s.ServeUDP(ln, remoteAddr, req[:n]); err != nil {
+			go func(remoteAddr *net.udpAddr, req []byte) {
+				s := socks5.Server{
+					UDPAddr: ln.LocalAddr().(*net.UDPAddr),
+				}
+				if err := s.ServeUDP(ln, remoteAddr, req); err != nil {
 					log.Println(err)
 				}
-			}()
+			}(remoteAddr, req)
 		}
 	}()
 	ln, err := net.Listen("tcp", localAddr)
@@ -60,13 +60,13 @@ func main() {
 			log.Println(err)
 			return
 		}
-		s := socks5.Server{
-			UDPAddr: udpAddr,
-		}
-		go func() {
+		go func(c net.Conn) {
+			s := socks5.Server{
+				UDPAddr: udpAddr,
+			}
 			if err := s.Serve(c); err != nil {
 				log.Println(err)
 			}
-		}()
+		}(c)
 	}
 }

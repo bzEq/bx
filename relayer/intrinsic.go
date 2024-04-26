@@ -75,15 +75,15 @@ func (self *IntrinsicRelayer) startLocalUDPServer() error {
 				log.Println(err)
 				continue
 			}
-			s := socks5.Server{
-				UDPAddr: self.udpAddr,
-				Dial:    context.Dial,
-			}
-			go func() {
-				if err := s.ServeUDP(ln, remoteAddr, req[:n]); err != nil {
+			go func(remoteAddr *net.UDPAddr, req []byte) {
+				s := socks5.Server{
+					UDPAddr: self.udpAddr,
+					Dial:    context.Dial,
+				}
+				if err := s.ServeUDP(ln, remoteAddr, req); err != nil {
 					log.Println(err)
 				}
-			}()
+			}(remoteAddr, req[:n])
 		}
 	}()
 	return nil
