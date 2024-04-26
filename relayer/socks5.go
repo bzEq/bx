@@ -33,15 +33,20 @@ func (self *SocksRelayer) Run() {
 			break
 		}
 		if len(self.Next) == 0 {
-			go self.ServeAsEndRelayer(c)
+			go func(c net.Conn) {
+				defer c.Close()
+				self.ServeAsEndRelayer(c)
+			}(c)
 		} else {
-			go self.ServeAsIntermediateRelayer(c)
+			go func(c net.Conn) {
+				defer c.Close()
+				self.ServeAsIntermediateRelayer(c)
+			}(c)
 		}
 	}
 }
 
 func (self *SocksRelayer) ServeAsIntermediateRelayer(red net.Conn) {
-	defer red.Close()
 	blue, err := self.Dial("tcp", self.Next[rand.Uint64()%uint64(len(self.Next))])
 	if err != nil {
 		log.Println(err)
@@ -53,7 +58,6 @@ func (self *SocksRelayer) ServeAsIntermediateRelayer(red net.Conn) {
 }
 
 func (self *SocksRelayer) ServeAsEndRelayer(red net.Conn) {
-	defer red.Close()
 	blue := core.MakePipe()
 	go func() {
 		defer blue[0].Close()

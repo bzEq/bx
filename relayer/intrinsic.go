@@ -124,9 +124,15 @@ func (self *IntrinsicRelayer) Run() {
 			break
 		}
 		if self.IsEndPoint() {
-			go self.ServeAsEndRelayer(c)
+			go func(c net.Conn) {
+				defer c.Close()
+				self.ServeAsEndRelayer(c)
+			}(c)
 		} else {
-			go self.ServeAsLocalRelayer(c)
+			go func(c net.Conn) {
+				defer c.Close()
+				self.ServeAsLocalRelayer(c)
+			}(c)
 		}
 	}
 }
@@ -137,12 +143,10 @@ func (self *IntrinsicRelayer) ServeAsLocalRelayer(c net.Conn) {
 		UDPAddr: self.udpAddr,
 		Dial:    context.Dial,
 	}
-	defer c.Close()
 	s.Serve(c)
 }
 
 func (self *IntrinsicRelayer) ServeAsEndRelayer(c net.Conn) {
-	defer c.Close()
 	cp := core.NewPort(c, CreateProtocol(self.RelayProtocol))
 	(&intrinsic.Server{cp}).Run()
 }
